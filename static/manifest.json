@@ -1,0 +1,13 @@
+{
+  "name": "LIS Bridge",
+  "short_name": "LIS Bridge",
+  "description": "Trascrizione in tempo reale e traduzione in LIS per persone sorde",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a73e8",
+  "icons": [
+    { "src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

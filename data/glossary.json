@@ -1,0 +1,76 @@
+{
+  "concepts": [
+    {
+      "id": "medico",
+      "keywords": ["medico", "dottore", "dottor", "visita", "ospedale", "ambulatorio", "cura", "salute"],
+      "sign": "MEDICO",
+      "video": ""
+    },
+    {
+      "id": "farmacia",
+      "keywords": ["farmacia", "farmaco", "medicina", "pillola", "ricetta"],
+      "sign": "FARMACIA",
+      "video": ""
+    },
+    {
+      "id": "figli",
+      "keywords": ["figlio", "figlia", "figli", "bambino", "bambina", "bambini", "ragazzo", "ragazza"],
+      "sign": "FIGLIO",
+      "video": ""
+    },
+    {
+      "id": "scuola",
+      "keywords": ["scuola", "classe", "maestro", "maestra", "insegnante", "lezione", "compiti", "studente"],
+      "sign": "SCUOLA",
+      "video": ""
+    },
+    {
+      "id": "sport",
+      "keywords": ["sport", "palestra", "allenamento", "calcio", "nuoto", "basket", "gara", "partita"],
+      "sign": "SPORT",
+      "video": ""
+    },
+    {
+      "id": "lavoro",
+      "keywords": ["lavoro", "ufficio", "impiego", "occupazione", "azienda", "riunione", "collega", "capo"],
+      "sign": "LAVORO",
+      "video": ""
+    },
+    {
+      "id": "casa",
+      "keywords": ["casa", "abitazione", "appartamento", "domicilio", "famiglia"],
+      "sign": "CASA",
+      "video": ""
+    },
+    {
+      "id": "tempo",
+      "keywords": ["tempo", "ora", "orario", "giorno", "settimana", "mese", "anno", "oggi", "domani", "ieri"],
+      "sign": "TEMPO",
+      "video": ""
+    },
+    {
+      "id": "spesa",
+      "keywords": ["spesa", "supermercato", "negozio", "comprare", "acquisto", "pagare", "soldi", "euro"],
+      "sign": "SOLDI",
+      "video": ""
+    },
+    {
+      "id": "mangiare",
+      "keywords": ["mangiare", "cibo", "pranzo", "cena", "colazione", "ristorante", "fame"],
+      "sign": "MANGIARE",
+      "video": ""
+    },
+    {
+      "id": "viaggio",
+      "keywords": ["viaggio", "treno", "autobus", "macchina", "auto", "strada", "biglietto", "partenza", "arrivo"],
+      "sign": "VIAGGIO",
+      "video": ""
+    },
+    {
+      "id": "aiuto",
+      "keywords": ["aiuto", "aiutare", "bisogno", "servizio", "assistenza"],
+      "sign": "AIUTO",
+      "video": ""
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: lis-bridge
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app --workers 2 --timeout 120"
+    envVars:
+      - key: ASSEMBLYAI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
