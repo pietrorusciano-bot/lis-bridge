@@ -56,12 +56,20 @@
         const data = await res.json();
         if (data.error) throw new Error(data.error);
 
-        const url = "wss://streaming.assemblyai.com/v3/ws?sample_rate=16000&speech_model=universal-3-5-pro&speaker_labels=true&language_codes=[%22it%22]&token=" + encodeURIComponent(data.token);
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
+        audioContext = new AudioContext();
+        const rate = audioContext.sampleRate;
+
+        const url = "wss://streaming.assemblyai.com/v3/ws?sample_rate=" + rate + "&speech_model=universal-3-5-pro&speaker_labels=true&language_codes=[%22it%22]&token=" + encodeURIComponent(data.token);
         socket = new WebSocket(url);
 
-        socket.onopen = async () => {
-          stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          audioContext = new AudioContext({ sampleRate: 16000 });
+        socket.onopen = () => {
           const source = audioContext.createMediaStreamSource(stream);
           processor = audioContext.createScriptProcessor(4096, 1, 1);
           source.connect(processor);
