@@ -8,7 +8,16 @@
   <link rel="icon" href="/static/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="/static/icon-192.png">
   <meta name="theme-color" content="#1a73e8">
+  <script src="https://unpkg.com/@sutton-signwriting/font-ttf@1.5.2"></script>
   <style>
+    @font-face {
+      font-family: "SuttonSignWritingLine";
+      src: url("https://unpkg.com/@sutton-signwriting/font-ttf@1.5.2/font/SuttonSignWritingLine.ttf") format("truetype");
+    }
+    @font-face {
+      font-family: "SuttonSignWritingFill";
+      src: url("https://unpkg.com/@sutton-signwriting/font-ttf@1.5.2/font/SuttonSignWritingFill.ttf") format("truetype");
+    }
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; }
     h1 { font-size: 1.6rem; }
     button { font-size: 1.2rem; padding: 14px 28px; border: none; border-radius: 8px; cursor: pointer; }
@@ -21,6 +30,10 @@
     .turn .semplice { color: #777; font-style: italic; margin-bottom: 6px; }
     .turn .lis { background: #fef4e6; border: 1px solid #f0d8b0; border-radius: 6px; padding: 8px 10px; font-weight: bold; letter-spacing: 0.05em; }
     .turn .lis.pending { color: #999; }
+    .sign-inline { display: inline-block; vertical-align: middle; margin: 2px 4px; text-align: center; }
+    .sign-inline svg { display: block; margin: 0 auto; }
+    .sign-inline .gloss-label { font-size: 0.7rem; color: #8a6d3b; letter-spacing: normal; font-weight: normal; }
+    .gloss-plain { display: inline-block; margin: 2px 4px; }
     .empty { color: #999; }
   </style>
 </head>
@@ -41,10 +54,16 @@
     let stream = null;
     let running = false;
     let sentenceId = 0;
+    let dictionary = {};
 
     const toggle = document.getElementById("toggle");
     const live = document.getElementById("live");
     const turns = document.getElementById("turns");
+
+    fetch("/static/dizionario_lis.json")
+      .then((r) => r.json())
+      .then((d) => { dictionary = d.segni || {}; })
+      .catch(() => {});
 
     toggle.addEventListener("click", () => {
       if (running) { stop(); } else { start(); }
@@ -142,12 +161,48 @@
         if (!div) return;
         div.querySelector(".semplice").textContent = data.italiano || "";
         const lisBox = div.querySelector(".lis");
-        lisBox.textContent = data.lis || (data.errore_lis ? "Errore LIS: " + data.errore_lis : "");
+        lisBox.innerHTML = "";
+        if (data.errore_lis) {
+          lisBox.textContent = "Errore LIS: " + data.errore_lis;
+        } else {
+          renderLis(lisBox, data.lis || "");
+        }
         lisBox.classList.remove("pending");
       } catch (err) {
         const div = document.getElementById("turn-" + id);
         if (div) div.querySelector(".lis").textContent = "Errore LIS: " + err;
       }
+    }
+
+    function renderLis(container, lisText) {
+      const glosses = lisText.split(/\s+/).filter(Boolean);
+      if (!glosses.length) {
+        container.textContent = "";
+        return;
+      }
+      for (const gloss of glosses) {
+        const entry = dictionary[gloss];
+        if (entry && entry.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) {
+          try {
+            const svg = ssw.ttf.fsw.signSvg(entry.fsw);
+            const span = document.createElement("span");
+            span.className = "sign-inline";
+            span.innerHTML = svg + `<div class="gloss-label">${gloss}</div>`;
+            container.appendChild(span);
+          } catch (e) {
+            container.appendChild(makeGloss(gloss));
+          }
+        } else {
+          container.appendChild(makeGloss(gloss));
+        }
+      }
+    }
+
+    function makeGloss(text) {
+      const span = document.createElement("span");
+      span.className = "gloss-plain";
+      span.textContent = text;
+      return span;
     }
 
     function floatTo16BitPCM(float32) {
