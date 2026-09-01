@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIS Bridge - Amministrazione Dizionario</title>
+  <script src="https://unpkg.com/@sutton-signwriting/font-ttf@1.5.2"></script>
+  <style>
+    @font-face {
+      font-family: "SuttonSignWritingLine";
+      src: url("https://unpkg.com/@sutton-signwriting/font-ttf@1.5.2/font/SuttonSignWritingLine.ttf") format("truetype");
+    }
+    @font-face {
+      font-family: "SuttonSignWritingFill";
+      src: url("https://unpkg.com/@sutton-signwriting/font-ttf@1.5.2/font/SuttonSignWritingFill.ttf") format("truetype");
+    }
+    body { font-family: system-ui, sans-serif; max-width: 860px; margin: 40px auto; padding: 0 20px; }
+    h1 { font-size: 1.5rem; }
+    label { display: block; margin: 12px 0 4px; font-weight: bold; }
+    input, textarea { width: 100%; padding: 8px; font-size: 1rem; box-sizing: border-box; }
+    textarea { font-family: monospace; min-height: 80px; }
+    button { font-size: 1rem; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; margin-top: 12px; }
+    #save { background: #1a73e8; color: #fff; }
+    #save:disabled { background: #999; }
+    .row { display: flex; align-items: center; gap: 10px; }
+    .preview { background: #fef4e6; border: 1px solid #f0d8b0; border-radius: 6px; padding: 12px; margin-top: 12px; text-align: center; min-height: 80px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: middle; }
+    th { background: #f5f5f5; }
+    .sign-cell { text-align: center; }
+    .sign-cell svg { display: inline-block; }
+    .badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; }
+    .badge.ok { background: #d4edda; color: #155724; }
+    .badge.no { background: #f8d7da; color: #721c24; }
+    .del { background: #d33; color: #fff; padding: 4px 10px; }
+    #msg { margin-top: 12px; font-weight: bold; }
+    #msg.err { color: #d33; }
+    #msg.ok { color: #187a3a; }
+    .hidden { display: none; }
+    .token-bar { background: #fff3cd; border: 1px solid #ffe08a; border-radius: 6px; padding: 10px; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Amministrazione Dizionario LIS</h1>
+
+  <div id="tokenbar" class="token-bar hidden">
+    <label for="token">Password amministratore</label>
+    <div class="row">
+      <input type="password" id="token" style="flex:1">
+      <button id="unlock">Sblocca</button>
+    </div>
+  </div>
+
+  <div id="editor">
+    <label for="gloss">Glossa (in MAIUSCOLO, es. CASA)</label>
+    <input type="text" id="gloss" placeholder="CASA">
+
+    <label for="fsw">Codice FSW (Formal SignWriting)</label>
+    <textarea id="fsw" placeholder="M518x533S1870a489x515..."></textarea>
+
+    <div class="row" style="margin-top:12px">
+      <input type="checkbox" id="validato" style="width:auto">
+      <label for="validato" style="margin:0">Validato da linguista</label>
+    </div>
+
+    <label for="nota">Nota (facoltativa)</label>
+    <input type="text" id="nota" placeholder="Es. verificare con interprete">
+
+    <button id="save" disabled>Salva segno</button>
+    <div id="msg"></div>
+
+    <h2>Anteprima</h2>
+    <div class="preview" id="preview">—</div>
+  </div>
+
+  <h2>Segni nel dizionario</h2>
+  <table>
+    <thead>
+      <tr><th>Glossa</th><th>Segno</th><th>Stato</th><th>Azioni</th></tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <script>
+    let adminToken = localStorage.getItem("adminToken") || "";
+    const tokenbar = document.getElementById("tokenbar");
+    const editor = document.getElementById("editor");
+    const glossInput = document.getElementById("gloss");
+    const fswInput = document.getElementById("fsw");
+    const validatoInput = document.getElementById("validato");
+    const notaInput = document.getElementById("nota");
+    const saveBtn = document.getElementById("save");
+    const preview = document.getElementById("preview");
+    const rows = document.getElementById("rows");
+    const msg = document.getElementById("msg");
+    let current = {};
+
+    fetch("/api/dictionary").then(r => r.json()).then(d => { current = d.segni || {}; renderRows(); });
+
+    fetch("/api/admin_status").then(r => r.json()).then(d => {
+      if (d.auth_required) { tokenbar.classList.remove("hidden"); editor.classList.add("hidden"); }
+    }).catch(() => {});
+
+    function renderRows() {
+      rows.innerHTML = "";
+      const keys = Object.keys(current).sort();
+      if (!keys.length) {
+        rows.innerHTML = '<tr><td colspan="4" style="color:#999">Nessun segno ancora.</td></tr>';
+        return;
+      }
+      for (const gloss of keys) {
+        const s = current[gloss];
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><b>${gloss}</b></td>
+          <td class="sign-cell" data-fsw="${s.fsw}"></td>
+          <td>${s.validato ? '<span class="badge ok">validato</span>' : '<span class="badge no">da validare</span>'}</td>
+          <td><button class="del" data-gloss="${gloss}">Elimina</button></td>`;
+        rows.appendChild(tr);
+        try {
+          const cell = tr.querySelector(".sign-cell");
+          if (s.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) {
+            cell.innerHTML = ssw.ttf.fsw.signSvg(s.fsw);
+          }
+        } catch (e) {}
+      }
+      document.querySelectorAll(".del").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          if (!confirm("Eliminare il segno " + btn.dataset.gloss + "?")) return;
+          await callDelete(btn.dataset.gloss);
+        });
+      });
+    }
+
+    function renderPreview() {
+      const fsw = fswInput.value.trim();
+      if (!fsw) { preview.textContent = "—"; return; }
+      try {
+        if (typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) {
+          preview.innerHTML = ssw.ttf.fsw.signSvg(fsw);
+        } else {
+          preview.textContent = "Libreria SignWriting non caricata";
+        }
+      } catch (e) {
+        preview.textContent = "FSW non valido";
+      }
+    }
+
+    fswInput.addEventListener("input", () => {
+      saveBtn.disabled = !glossInput.value.trim() || !fswInput.value.trim();
+      renderPreview();
+    });
+    glossInput.addEventListener("input", () => {
+      saveBtn.disabled = !glossInput.value.trim() || !fswInput.value.trim();
+    });
+
+    saveBtn.addEventListener("click", async () => {
+      const gloss = glossInput.value.trim().toUpperCase();
+      const fsw = fswInput.value.trim();
+      msg.textContent = "";
+      msg.className = "";
+      try {
+        const res = await fetch("/api/dictionary", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Admin-Token": adminToken },
+          body: JSON.stringify({
+            gloss: gloss,
+            fsw: fsw,
+            validato: validatoInput.checked,
+            nota: notaInput.value,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "errore");
+        current = data.segni || {};
+        renderRows();
+        glossInput.value = "";
+        fswInput.value = "";
+        notaInput.value = "";
+        validatoInput.checked = false;
+        preview.textContent = "—";
+        saveBtn.disabled = true;
+        msg.textContent = "Segno salvato";
+        msg.className = "ok";
+      } catch (e) {
+        msg.textContent = "Errore: " + e.message;
+        msg.className = "err";
+      }
+    });
+
+    async function callDelete(gloss) {
+      try {
+        const res = await fetch("/api/dictionary/" + encodeURIComponent(gloss), {
+          method: "DELETE",
+          headers: { "X-Admin-Token": adminToken },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "errore");
+        current = data.segni || {};
+        renderRows();
+      } catch (e) {
+        alert("Errore: " + e.message);
+      }
+    }
+
+    document.getElementById("unlock").addEventListener("click", () => {
+      const t = document.getElementById("token").value;
+      fetch("/api/dictionary", { headers: { "X-Admin-Token": t } }).then(r => {
+        if (r.ok) {
+          adminToken = t;
+          localStorage.setItem("adminToken", t);
+          tokenbar.classList.add("hidden");
+          editor.classList.remove("hidden");
+        } else {
+          alert("Password errata");
+        }
+      });
+    });
+  </script>
+</body>
+</html>
