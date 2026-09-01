@@ -19,15 +19,17 @@ def save(segni):
             json.dump({"segni": segni}, f, ensure_ascii=False, indent=2)
 
 
-def upsert(gloss, fsw, validato=False, nota=""):
+def upsert(gloss, fsw, validato=False, nota="", video=""):
     gloss = gloss.strip().upper()
     if not gloss:
         raise ValueError("La glossa non può essere vuota")
     segni = load()
+    existing = segni.get(gloss, {})
     segni[gloss] = {
         "fsw": (fsw or "").strip(),
         "validato": bool(validato),
         "nota": (nota or "").strip(),
+        "video": (video or existing.get("video", "")).strip(),
     }
     save(segni)
     return segni

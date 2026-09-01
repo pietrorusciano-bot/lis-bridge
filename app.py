@@ -1,21 +1,25 @@
 import os
 import time
+import uuid
 
 import requests
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, send_from_directory
 
 import dictionary
 from glossary import Glossary
 from lis_translator import LisTranslator
 
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024
 
 glossary = Glossary()
 
 ASSEMBLYAI_TOKEN_URL = "https://streaming.assemblyai.com/v3/token"
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
+
+VIDEO_DIR = os.path.join(os.path.dirname(__file__), "static", "videos")
+os.makedirs(VIDEO_DIR, exist_ok=True)
 
 
 @app.route("/")
@@ -91,10 +95,36 @@ def upsert_dictionary():
             data.get("fsw", ""),
             data.get("validato", False),
             data.get("nota", ""),
+            data.get("video", ""),
         )
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     return jsonify({"segni": segni})
+
+
+ALLOWED_VIDEO_EXT = {".mp4", ".webm", ".mov"}
+
+
+@app.route("/api/upload_video", methods=["POST"])
+def upload_video():
+    if not _check_admin():
+        return jsonify({"error": "Non autorizzato"}), 401
+    gloss = request.form.get("gloss", "").strip().upper()
+    file = request.files.get("video")
+    if not gloss or not file:
+        return jsonify({"error": "glossa o file mancante"}), 400
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_VIDEO_EXT:
+        return jsonify({"error": "Formato non supportato (usa mp4, webm o mov)"}), 400
+
+    filename = f"{gloss}{ext}"
+    path = os.path.join(VIDEO_DIR, filename)
+    file.save(path)
+
+    video_url = f"/static/videos/{filename}"
+    dictionary.upsert(gloss, "", False, "", video_url)
+    return jsonify({"video_url": video_url, "segni": dictionary.load()})
 
 
 @app.route("/api/dictionary/<gloss>", methods=["DELETE"])

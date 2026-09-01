@@ -1,61 +1,56 @@
-# Guida: creare i segni LIS (codici FSW) per il dizionario
+# Guida: aggiungere i segni LIS (video o simboli) al dizionario
 
-Questa guida serve al linguista/interprete LIS per generare i codici SignWriting
-(FSW) da inserire nel dizionario dell'app.
+Questa guida serve al linguista/interprete LIS per aggiungere i segni all'app.
 
-## Lo strumento principale: SignMaker
+## Metodo 1 — VIDEO (consigliato)
 
-**SignMaker** è l'editor online (gratuito) per disegnare i segni in SignWriting.
+Il video è il metodo più chiaro e preciso, perché mostra il segno LIS reale.
 
-- **URL:** https://www.sutton-signwriting.io/signmaker/
+### Cosa serve
 
-Si usa "point-and-click": scegli la configurazione della mano, il movimento,
-l'orientamento, ecc., e l'editor genera automaticamente il **codice FSW**
-(una stringa tipo `M518x533S1870a489x515...`).
+Un file video del segno (formato `mp4`, `webm` o `mov`), breve (2-4 secondi),
+con il segnante inquadrato bene, mani e viso visibili.
 
-### Passi per creare un segno
-
-1. Apri SignMaker
-2. Disegna il segno selezionando i simboli (mani, movimento, espressioni)
-3. Il codice **FSW** compare in alto (o nell'URL con parametro `fsw=...`)
-4. Copia quel codice
-
-### Alternative
-
-- **SignPuddle 2.0** (https://www.signbank.org/signpuddle) — dizionario/editor
-  con più lingue dei segni, incluso italiano. Ogni raccolta è esportabile in FSW.
-- **SignPuddle 3 beta** (https://signpuddle.com) — versione più recente
-- **Delegs Editor** (https://www.signbank.org/delegs.html) — altro editor SignWriting
-- **SignWriter Studio** — programma desktop con dizionario
-
-## Come inserire il codice nell'app
+### Come caricarlo
 
 1. Apri la pagina di amministrazione dell'app: `/admin`
-2. Nel campo "Glossa" scrivi la parola in MAIUSCOLO (es. `CASA`)
-3. Nel campo "FSW" incolla il codice copiato da SignMaker
-4. Spunta "Validato da linguista"
-5. Clicca "Salva segno" — vedi subito l'anteprima del simbolo
+2. Nella sezione "Carica video del segno":
+   - scrivi la glossa in MAIUSCOLO (es. `CASA`)
+   - seleziona il file video
+3. Clicca "Carica video"
+4. Il video viene associato alla glossa e mostrato nell'app al posto del simbolo
 
-## Fonti di riferimento per i segni LIS esistenti
+### Da dove prendere i video
 
-Prima di disegnare un segno da zero, controlla se esiste già:
+- **Registrare un segnante/interprete** (il metodo migliore e senza problemi di licenza)
+- **SpreadTheSign** (https://spreadthesign.com) ha video di segni LIS reali,
+  ma sono **proprietari**: NON si possono scaricare/ridistribuire senza
+  autorizzazione del European Sign Language Centre. Usali solo come riferimento
+  visivo per verificare il segno corretto.
 
-- **SpreadTheSign** (https://spreadthesign.com) — video-dizionario con segni LIS
-  reali (video di segnanti). Utile come riferimento visivo del segno corretto.
-- **SignPuddle** — raccolte SignWriting esistenti per la LIS e altre lingue
-- Manuale CNR "Scrivere la LIS con il Sign Writing" (PDF gratuito) — la guida
-  ufficiale italiana all'adattamento del SignWriting alla LIS
+## Metodo 2 — SIMBOLO SignWriting (alternativa)
 
-## Nota importante
+Se non hai un video, puoi usare il simbolo disegnato in SignWriting.
 
-- I segni vanno disegnati seguendo la **grammatica SignWriting adattata alla LIS**
-  (vedi manuale CNR). Non copiare segni ASL: la LIS ha segni propri.
-- Un segno può avere più varianti regionali: segnare nel campo "nota" quale
-  variante è stata scelta.
+### Strumento
 
-## Esempio di codice FSW
+**SignMaker** (https://www.sutton-signwriting.io/signmaker/) — editor online
+gratuito: disegni il segno e ottieni il codice **FSW**.
 
-`M518x533S1870a489x515S18701482x490S20500508x496S2e734500x468`
+### Come inserirlo
 
-Questa è solo una stringa di esempio (dalla documentazione ufficiale SignWriting)
-e NON corrisponde a un segno LIS specifico: serve solo a testare il rendering.
+1. Apri `/admin`
+2. Inserisci la glossa e il codice FSW
+3. Vedi l'anteprima del simbolo
+4. Clicca "Salva segno"
+
+## Fonti di riferimento per il segno corretto
+
+- **SpreadTheSign** (https://spreadthesign.com) — video-dizionario (solo consultazione)
+- Manuale CNR "Scrivere la LIS con il Sign Writing" (PDF gratuito)
+
+## Note importanti
+
+- I segni LIS sono propri: non copiare segni ASL.
+- Un segno può avere più varianti regionali: indica nella nota quale variante hai usato.
+- I video caricati NON vanno nel codice sorgente (sono grandi): restano sul server.

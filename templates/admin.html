@@ -73,6 +73,17 @@
     <div class="preview" id="preview">—</div>
   </div>
 
+  <h2>Carica video del segno (consigliato)</h2>
+  <div id="uploader">
+    <p style="color:#777">Il video è il metodo più chiaro e preciso. Carica un video mp4/webm/mov del segno: verrà mostrato al posto del simbolo disegnato.</p>
+    <div class="row">
+      <input type="text" id="vgloss" placeholder="Glossa (es. CASA)" style="flex:1">
+      <input type="file" id="vfile" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" style="flex:2">
+    </div>
+    <button id="upload">Carica video</button>
+    <div id="vmsg"></div>
+  </div>
+
   <h2>Segni nel dizionario</h2>
   <table>
     <thead>
@@ -93,12 +104,13 @@
     const preview = document.getElementById("preview");
     const rows = document.getElementById("rows");
     const msg = document.getElementById("msg");
+    const uploader = document.getElementById("uploader");
     let current = {};
 
     fetch("/api/dictionary").then(r => r.json()).then(d => { current = d.segni || {}; renderRows(); });
 
     fetch("/api/admin_status").then(r => r.json()).then(d => {
-      if (d.auth_required) { tokenbar.classList.remove("hidden"); editor.classList.add("hidden"); }
+      if (d.auth_required) { tokenbar.classList.remove("hidden"); editor.classList.add("hidden"); uploader.classList.add("hidden"); }
     }).catch(() => {});
 
     function renderRows() {
@@ -119,7 +131,9 @@
         rows.appendChild(tr);
         try {
           const cell = tr.querySelector(".sign-cell");
-          if (s.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) {
+          if (s.video) {
+            cell.innerHTML = `<video src="${s.video}" muted loop autoplay playsinline style="width:60px;height:60px;object-fit:cover;border-radius:6px"></video>`;
+          } else if (s.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) {
             cell.innerHTML = ssw.ttf.fsw.signSvg(s.fsw);
           }
         } catch (e) {}
@@ -203,6 +217,40 @@
       }
     }
 
+    document.getElementById("upload").addEventListener("click", async () => {
+      const gloss = document.getElementById("vgloss").value.trim().toUpperCase();
+      const fileInput = document.getElementById("vfile");
+      const vmsg = document.getElementById("vmsg");
+      vmsg.textContent = "";
+      vmsg.className = "";
+      if (!gloss || !fileInput.files.length) {
+        vmsg.textContent = "Inserisci glossa e seleziona un file video";
+        vmsg.className = "err";
+        return;
+      }
+      const formData = new FormData();
+      formData.append("gloss", gloss);
+      formData.append("video", fileInput.files[0]);
+      try {
+        const res = await fetch("/api/upload_video", {
+          method: "POST",
+          headers: { "X-Admin-Token": adminToken },
+          body: formData,
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "errore");
+        current = data.segni || {};
+        renderRows();
+        document.getElementById("vgloss").value = "";
+        fileInput.value = "";
+        vmsg.textContent = "Video caricato per " + gloss;
+        vmsg.className = "ok";
+      } catch (e) {
+        vmsg.textContent = "Errore: " + e.message;
+        vmsg.className = "err";
+      }
+    });
+
     document.getElementById("unlock").addEventListener("click", () => {
       const t = document.getElementById("token").value;
       fetch("/api/dictionary", { headers: { "X-Admin-Token": t } }).then(r => {
@@ -211,6 +259,7 @@
           localStorage.setItem("adminToken", t);
           tokenbar.classList.add("hidden");
           editor.classList.remove("hidden");
+          uploader.classList.remove("hidden");
         } else {
           alert("Password errata");
         }
