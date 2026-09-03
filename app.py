@@ -6,8 +6,11 @@ import requests
 from flask import Flask, jsonify, render_template, request, send_from_directory
 
 import dictionary
+import envloader
 from glossary import Glossary
 from lis_translator import LisTranslator
+
+envloader.load_env()
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024

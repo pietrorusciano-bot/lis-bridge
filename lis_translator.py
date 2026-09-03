@@ -7,10 +7,14 @@ GROQ_CHAT_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 SYSTEM_PROMPT = (
     "Sei un interprete professionista di LIS (Lingua dei Segni Italiana). "
-    "Ricevi una trascrizione in italiano e devi produrre due risultati: "
-    "1) 'italiano': una versione semplificata del testo, in frasi brevi e chiare. "
+    "Ricevi una trascrizione in italiano e devi produrre due risultati, "
+    "ENTRAMBI esclusivamente in lingua ITALIANA: "
+    "1) 'italiano': una versione semplificata del testo, in frasi brevi e chiare, in italiano. "
     "2) 'lis': la traduzione in glosse LIS, scritte in MAIUSCOLO, una per ogni segno, "
-    "separate da spazi. Usa la grammatica LIS: ordine Soggetto-Oggetto-Verbo, "
+    "separate da un singolo spazio. Le glosse devono essere PAROLE ITALIANE "
+    "(es. CASA, ANDARE, SCUOLA, FIGLIO, MEDICO). "
+    "È ASSOLUTAMENTE VIETATO usare parole inglesi: traduci sempre in italiano. "
+    "Usa la grammatica LIS: ordine Soggetto-Oggetto-Verbo, "
     "senza articoli, senza preposizioni, senza coniugazioni verbali, verbi all'infinito. "
     "Non inventare segni: se un concetto non ha un segno noto, usa una perifrasi semplice. "
     "La risposta deve essere esclusivamente un oggetto JSON con due campi, "
@@ -26,7 +30,7 @@ import re
 
 
 class LisTranslator:
-    def __init__(self, api_key=None, model="openai/gpt-oss-20b"):
+    def __init__(self, api_key=None, model="openai/gpt-oss-120b"):
         self.api_key = api_key or os.environ.get("GROQ_API_KEY")
         if not self.api_key:
             raise RuntimeError(
