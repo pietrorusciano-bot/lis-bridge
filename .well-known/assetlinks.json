@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.onrender.lis_bridge.twa",
+      "sha256_cert_fingerprints": ["16:63:CB:83:FB:5E:80:E9:49:4E:93:3A:60:1C:C1:82:1C:94:0D:47:F2:DB:CF:E2:85:9A:90:FE:86:A6:9D:AB"]
+    }
+  }
+]

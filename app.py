@@ -31,6 +31,13 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/.well-known/assetlinks.json")
+def assetlinks():
+    import os as _os
+    path = _os.path.join(_os.path.dirname(__file__), ".well-known", "assetlinks.json")
+    return send_from_directory(_os.path.dirname(path), "assetlinks.json")
+
+
 @app.errorhandler(Exception)
 def handle_error(e):
     return jsonify({"error": str(e)}), 500
