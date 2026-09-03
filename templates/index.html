@@ -333,12 +333,13 @@
       for (const gloss of keys) {
         const s = dictionary[gloss];
         const isPers = !!s.user_id;
+        const canDelete = isPers || isAdmin;
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td><b>${gloss}</b></td>
           <td class="sign-cell"></td>
-          <td>${isPers ? '<span class="badge pers">personale</span>' : (s.validato ? '<span class="badge ok">globale</span>' : '<span class="badge no">globale</span>')}</td>
-          <td>${isPers ? '<button class="del" data-gloss="' + gloss + '">Elimina</button>' : ''}</td>`;
+          <td>${isPers ? '<span class="badge pers">personale</span>' : '<span class="badge ok">globale</span>'}</td>
+          <td>${canDelete ? `<button class="del" data-gloss="${gloss}" data-type="${isPers ? 'pers' : 'glob'}">Elimina</button>` : ''}</td>`;
         rows.appendChild(tr);
         try {
           const cell = tr.querySelector(".sign-cell");
@@ -352,11 +353,15 @@
       document.querySelectorAll(".del").forEach(btn => {
         btn.addEventListener("click", async () => {
           if (!confirm("Eliminare il segno " + btn.dataset.gloss + "?")) return;
+          const url = btn.dataset.type === "glob"
+            ? "/api/global/signs/" + encodeURIComponent(btn.dataset.gloss)
+            : "/api/dictionary/" + encodeURIComponent(btn.dataset.gloss);
           try {
-            const res = await fetch("/api/dictionary/" + encodeURIComponent(btn.dataset.gloss), { method: "DELETE", headers: authHeaders() });
+            const res = await fetch(url, { method: "DELETE", headers: authHeaders() });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "errore");
             dictionary = data.segni || {}; renderRows();
+            if (btn.dataset.type === "glob") refreshGlobal();
           } catch (e) { alert("Errore: " + e.message); }
         });
       });
