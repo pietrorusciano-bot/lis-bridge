@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LIS Bridge - Prototipo</title>
+  <title>LIS Bridge</title>
   <link rel="manifest" href="/static/manifest.json">
   <link rel="icon" href="/static/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="/static/icon-192.png">
@@ -18,10 +18,17 @@
       font-family: "SuttonSignWritingFill";
       src: url("https://unpkg.com/@sutton-signwriting/font-ttf@1.5.2/font/SuttonSignWritingFill.ttf") format("truetype");
     }
-    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; }
-    h1 { font-size: 1.6rem; }
-    button { font-size: 1.2rem; padding: 14px 28px; border: none; border-radius: 8px; cursor: pointer; }
-    #toggle { background: #d33; color: #fff; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 0 auto; padding: 0 20px 60px; }
+    header { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid #eee; }
+    h1 { font-size: 1.3rem; margin: 0; }
+    nav { display: flex; gap: 4px; margin: 16px 0; }
+    nav button { flex: 1; padding: 12px; font-size: 1rem; border: 1px solid #ddd; background: #f5f5f5; border-radius: 8px; cursor: pointer; }
+    nav button.active { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+    .view { display: none; }
+    .view.active { display: block; }
+    button { font-size: 1rem; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; }
+    #toggle { background: #d33; color: #fff; padding: 14px 28px; font-size: 1.2rem; }
     #toggle.on { background: #2a2; }
     #live { background: #f4f4f4; border-radius: 8px; padding: 12px 16px; margin: 16px 0; min-height: 30px; color: #777; font-style: italic; }
     .turn { border: 1px solid #ddd; border-radius: 8px; padding: 12px 16px; margin: 12px 0; background: #fafafa; }
@@ -35,138 +42,364 @@
     .sign-inline .gloss-label { font-size: 0.7rem; color: #8a6d3b; letter-spacing: normal; font-weight: normal; }
     .gloss-plain { display: inline-block; margin: 2px 4px; }
     .empty { color: #999; }
+
+    .auth-box { border: 1px solid #ddd; border-radius: 10px; padding: 20px; margin: 16px 0; }
+    .auth-box input { width: 100%; padding: 10px; margin: 6px 0; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; }
+    .auth-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .auth-actions button { flex: 1; }
+    #loginBtn { background: #1a73e8; color: #fff; }
+    #signupBtn { background: #2a2; color: #fff; }
+    #logoutBtn { background: #555; color: #fff; font-size: 0.85rem; padding: 8px 14px; }
+    .auth-msg { margin-top: 10px; font-weight: bold; }
+    .auth-msg.err { color: #d33; }
+    .auth-msg.ok { color: #187a3a; }
+
+    .manage-box { border: 1px solid #ddd; border-radius: 10px; padding: 20px; margin: 16px 0; }
+    .manage-box label { display: block; margin: 12px 0 4px; font-weight: bold; }
+    .manage-box input[type=text], .manage-box textarea { width: 100%; padding: 8px; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; }
+    .manage-box textarea { font-family: monospace; min-height: 70px; }
+    .row { display: flex; align-items: center; gap: 10px; }
+    .row input[type=text] { flex: 1; }
+    .row input[type=file] { flex: 2; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: middle; }
+    th { background: #f5f5f5; }
+    .badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; }
+    .badge.ok { background: #d4edda; color: #155724; }
+    .badge.no { background: #f8d7da; color: #721c24; }
+    .badge.pers { background: #cfe2ff; color: #084298; }
+    .del { background: #d33; color: #fff; padding: 4px 10px; }
+    .msg { margin-top: 10px; font-weight: bold; }
+    .msg.err { color: #d33; }
+    .msg.ok { color: #187a3a; }
+    .preview { background: #fef4e6; border: 1px solid #f0d8b0; border-radius: 6px; padding: 12px; margin-top: 12px; text-align: center; min-height: 60px; }
+    .hint { color: #888; font-size: 0.85rem; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <h1>LIS Bridge — Prototipo</h1>
-  <p>Premi "Avvia", parla: la trascrizione appare in tempo reale e ogni frase viene tradotta in LIS.</p>
+  <header>
+    <h1>LIS Bridge</h1>
+    <div id="userBox">
+      <span id="userLabel" class="hint">Non autenticato</span>
+      <button id="logoutBtn" class="hidden">Esci</button>
+    </div>
+  </header>
 
-  <button id="toggle">Avvia</button>
-  <div id="live" class="empty">In attesa...</div>
+  <nav>
+    <button id="tabUse" class="active">Utilizzo</button>
+    <button id="tabManage">Gestione</button>
+  </nav>
 
-  <h2>Conversazione</h2>
-  <div id="turns" class="empty">Nessuna trascrizione ancora.</div>
+  <!-- VISTA UTILIZZO -->
+  <div id="viewUse" class="view active">
+    <p class="hint">Premi "Avvia", parla: trascrizione in tempo reale e traduzione in LIS.</p>
+    <button id="toggle">Avvia</button>
+    <div id="live" class="empty">In attesa...</div>
+    <h2>Conversazione</h2>
+    <div id="turns" class="empty">Nessuna trascrizione ancora.</div>
+  </div>
+
+  <!-- VISTA GESTIONE -->
+  <div id="viewManage" class="view">
+    <div id="authBox" class="auth-box">
+      <h2>Accedi</h2>
+      <p class="hint">Accedi per gestire i tuoi segni personali.</p>
+      <input type="email" id="email" placeholder="Email">
+      <input type="password" id="password" placeholder="Password">
+      <div class="auth-actions">
+        <button id="loginBtn">Accedi</button>
+        <button id="signupBtn">Registrati</button>
+      </div>
+      <div id="authMsg" class="auth-msg"></div>
+    </div>
+
+    <div id="manageBox" class="hidden">
+      <div class="manage-box">
+        <h2>Carica video del segno</h2>
+        <p class="hint">Il video è il metodo più chiaro. Verrà associato alla tua glossa personale.</p>
+        <div class="row">
+          <input type="text" id="vgloss" placeholder="Glossa (es. CASA)">
+          <input type="file" id="vfile" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov">
+        </div>
+        <button id="upload" style="background:#1a73e8;color:#fff;margin-top:10px">Carica video</button>
+        <div id="vmsg" class="msg"></div>
+      </div>
+
+      <div class="manage-box">
+        <h2>Aggiungi segno (simbolo SignWriting)</h2>
+        <p class="hint">Alternativa al video: disegna il segno e incolla il codice FSW.</p>
+        <label for="gloss">Glossa (MAIUSCOLO)</label>
+        <input type="text" id="gloss" placeholder="CASA">
+        <label for="fsw">Codice FSW</label>
+        <textarea id="fsw" placeholder="M518x533S1870a489x515..."></textarea>
+        <div class="preview" id="preview">—</div>
+        <button id="save" style="background:#2a2;color:#fff;margin-top:10px" disabled>Salva segno</button>
+        <div id="msg" class="msg"></div>
+      </div>
+
+      <h2>I tuoi segni</h2>
+      <p class="hint">Mostra i segni globali (condivisi) e i tuoi segni personali.</p>
+      <table>
+        <thead>
+          <tr><th>Glossa</th><th>Segno</th><th>Tipo</th><th>Azioni</th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
 
   <script>
-    let socket = null;
-    let audioContext = null;
-    let processor = null;
-    let stream = null;
-    let running = false;
-    let sentenceId = 0;
+    let token = localStorage.getItem("token") || "";
+    let userEmail = localStorage.getItem("userEmail") || "";
     let dictionary = {};
 
+    let socket = null, audioContext = null, processor = null, stream = null, running = false, sentenceId = 0;
+
+    const tabUse = document.getElementById("tabUse");
+    const tabManage = document.getElementById("tabManage");
+    const viewUse = document.getElementById("viewUse");
+    const viewManage = document.getElementById("viewManage");
+
+    tabUse.addEventListener("click", () => { tabUse.classList.add("active"); tabManage.classList.remove("active"); viewUse.classList.add("active"); viewManage.classList.remove("active"); });
+    tabManage.addEventListener("click", () => { tabManage.classList.add("active"); tabUse.classList.remove("active"); viewManage.classList.add("active"); viewUse.classList.remove("active"); refreshDictionary(); });
+
+    function refreshAuth() {
+      const userBox = document.getElementById("userBox");
+      const userLabel = document.getElementById("userLabel");
+      const logoutBtn = document.getElementById("logoutBtn");
+      const authBox = document.getElementById("authBox");
+      const manageBox = document.getElementById("manageBox");
+      if (token) {
+        userLabel.textContent = userEmail || "Autenticato";
+        logoutBtn.classList.remove("hidden");
+        authBox.classList.add("hidden");
+        manageBox.classList.remove("hidden");
+      } else {
+        userLabel.textContent = "Non autenticato";
+        logoutBtn.classList.add("hidden");
+        authBox.classList.remove("hidden");
+        manageBox.classList.add("hidden");
+      }
+    }
+
+    function authHeaders() {
+      const h = { "Content-Type": "application/json" };
+      if (token) h["Authorization"] = "Bearer " + token;
+      return h;
+    }
+
+    async function refreshDictionary() {
+      try {
+        const res = await fetch("/api/dictionary", { headers: authHeaders() });
+        const data = await res.json();
+        if (data.segni) { dictionary = data.segni; }
+        renderRows();
+      } catch (e) {}
+    }
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const msg = document.getElementById("authMsg");
+      msg.textContent = ""; msg.className = "auth-msg";
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "errore");
+        token = data.access_token; userEmail = data.user;
+        localStorage.setItem("token", token);
+        localStorage.setItem("userEmail", userEmail);
+        refreshAuth(); await refreshDictionary();
+        msg.textContent = "Accesso effettuato"; msg.className = "auth-msg ok";
+      } catch (e) { msg.textContent = "Errore: " + e.message; msg.className = "auth-msg err"; }
+    });
+
+    document.getElementById("signupBtn").addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const msg = document.getElementById("authMsg");
+      msg.textContent = ""; msg.className = "auth-msg";
+      if (password.length < 6) { msg.textContent = "Password troppo corta (min 6)"; msg.className = "auth-msg err"; return; }
+      try {
+        const res = await fetch("/api/auth/signup", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "errore");
+        if (data.access_token) {
+          token = data.access_token; userEmail = data.user;
+          localStorage.setItem("token", token);
+          localStorage.setItem("userEmail", userEmail);
+          refreshAuth(); await refreshDictionary();
+          msg.textContent = "Registrazione completata"; msg.className = "auth-msg ok";
+        } else {
+          msg.textContent = "Registrazione inviata (controlla email se richiesto)"; msg.className = "auth-msg ok";
+        }
+      } catch (e) { msg.textContent = "Errore: " + e.message; msg.className = "auth-msg err"; }
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      token = ""; userEmail = "";
+      localStorage.removeItem("token"); localStorage.removeItem("userEmail");
+      dictionary = {};
+      refreshAuth(); refreshDictionary();
+    });
+
+    function renderRows() {
+      const rows = document.getElementById("rows");
+      rows.innerHTML = "";
+      const keys = Object.keys(dictionary).sort();
+      if (!keys.length) { rows.innerHTML = '<tr><td colspan="4" class="empty">Nessun segno.</td></tr>'; return; }
+      for (const gloss of keys) {
+        const s = dictionary[gloss];
+        const isPers = !!s.user_id;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><b>${gloss}</b></td>
+          <td class="sign-cell"></td>
+          <td>${isPers ? '<span class="badge pers">personale</span>' : (s.validato ? '<span class="badge ok">globale</span>' : '<span class="badge no">globale</span>')}</td>
+          <td>${isPers ? '<button class="del" data-gloss="' + gloss + '">Elimina</button>' : ''}</td>`;
+        rows.appendChild(tr);
+        try {
+          const cell = tr.querySelector(".sign-cell");
+          if (s.video) {
+            cell.innerHTML = `<video src="${s.video}" muted loop autoplay playsinline style="width:60px;height:60px;object-fit:cover;border-radius:6px"></video>`;
+          } else if (s.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) {
+            cell.innerHTML = ssw.ttf.fsw.signSvg(s.fsw);
+          } else { cell.textContent = "—"; }
+        } catch (e) {}
+      }
+      document.querySelectorAll(".del").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          if (!confirm("Eliminare il segno " + btn.dataset.gloss + "?")) return;
+          try {
+            const res = await fetch("/api/dictionary/" + encodeURIComponent(btn.dataset.gloss), { method: "DELETE", headers: authHeaders() });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "errore");
+            dictionary = data.segni || {}; renderRows();
+          } catch (e) { alert("Errore: " + e.message); }
+        });
+      });
+    }
+
+    const fswInput = document.getElementById("fsw");
+    const glossInput = document.getElementById("gloss");
+    const saveBtn = document.getElementById("save");
+    const preview = document.getElementById("preview");
+
+    fswInput.addEventListener("input", () => {
+      saveBtn.disabled = !glossInput.value.trim() || !fswInput.value.trim();
+      const v = fswInput.value.trim();
+      if (!v) { preview.textContent = "—"; return; }
+      try { if (typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) preview.innerHTML = ssw.ttf.fsw.signSvg(v); }
+      catch (e) { preview.textContent = "FSW non valido"; }
+    });
+    glossInput.addEventListener("input", () => { saveBtn.disabled = !glossInput.value.trim() || !fswInput.value.trim(); });
+
+    saveBtn.addEventListener("click", async () => {
+      const gloss = glossInput.value.trim().toUpperCase();
+      const fsw = fswInput.value.trim();
+      const msg = document.getElementById("msg");
+      msg.textContent = ""; msg.className = "msg";
+      try {
+        const res = await fetch("/api/dictionary", {
+          method: "POST", headers: authHeaders(),
+          body: JSON.stringify({ gloss, fsw, validato: false, nota: "" }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "errore");
+        dictionary = data.segni || {}; renderRows();
+        glossInput.value = ""; fswInput.value = ""; preview.textContent = "—"; saveBtn.disabled = true;
+        msg.textContent = "Segno salvato"; msg.className = "msg ok";
+      } catch (e) { msg.textContent = "Errore: " + e.message; msg.className = "msg err"; }
+    });
+
+    document.getElementById("upload").addEventListener("click", async () => {
+      const gloss = document.getElementById("vgloss").value.trim().toUpperCase();
+      const fileInput = document.getElementById("vfile");
+      const vmsg = document.getElementById("vmsg");
+      vmsg.textContent = ""; vmsg.className = "msg";
+      if (!gloss || !fileInput.files.length) { vmsg.textContent = "Inserisci glossa e file"; vmsg.className = "msg err"; return; }
+      const fd = new FormData();
+      fd.append("gloss", gloss);
+      fd.append("video", fileInput.files[0]);
+      try {
+        const h = {}; if (token) h["Authorization"] = "Bearer " + token;
+        const res = await fetch("/api/upload_video", { method: "POST", headers: h, body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "errore");
+        dictionary = data.segni || {}; renderRows();
+        document.getElementById("vgloss").value = ""; fileInput.value = "";
+        vmsg.textContent = "Video caricato per " + gloss; vmsg.className = "msg ok";
+      } catch (e) { vmsg.textContent = "Errore: " + e.message; vmsg.className = "msg err"; }
+    });
+
+    // ---------- UTILIZZO (trascrizione) ----------
     const toggle = document.getElementById("toggle");
     const live = document.getElementById("live");
     const turns = document.getElementById("turns");
 
-    fetch("/static/dizionario_lis.json")
-      .then((r) => r.json())
-      .then((d) => { dictionary = d.segni || {}; })
-      .catch(() => {});
-
-    toggle.addEventListener("click", () => {
-      if (running) { stop(); } else { start(); }
-    });
+    toggle.addEventListener("click", () => { if (running) stop(); else start(); });
 
     async function start() {
       try {
         const res = await fetch("/api/stream_token");
         const data = await res.json();
         if (data.error) throw new Error(data.error);
-
-        stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-          },
-        });
+        stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
         audioContext = new AudioContext();
         const rate = audioContext.sampleRate;
-
         const url = "wss://streaming.assemblyai.com/v3/ws?sample_rate=" + rate + "&speech_model=universal-3-5-pro&speaker_labels=true&language_codes=[%22it%22]&token=" + encodeURIComponent(data.token);
         socket = new WebSocket(url);
-
         socket.onopen = () => {
           const source = audioContext.createMediaStreamSource(stream);
           processor = audioContext.createScriptProcessor(4096, 1, 1);
-          source.connect(processor);
-          processor.connect(audioContext.destination);
+          source.connect(processor); processor.connect(audioContext.destination);
           processor.onaudioprocess = (e) => {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-              const input = e.inputBuffer.getChannelData(0);
-              socket.send(floatTo16BitPCM(input));
-            }
+            if (socket && socket.readyState === WebSocket.OPEN) socket.send(floatTo16BitPCM(e.inputBuffer.getChannelData(0)));
           };
-          running = true;
-          toggle.textContent = "Ferma";
-          toggle.classList.add("on");
-          live.textContent = "Ascolto...";
-          live.classList.remove("empty");
+          running = true; toggle.textContent = "Ferma"; toggle.classList.add("on");
+          live.textContent = "Ascolto..."; live.classList.remove("empty");
         };
-
         socket.onmessage = (event) => {
           const msg = JSON.parse(event.data);
           if (msg.type === "Turn") {
             const text = msg.transcript || "";
-            if (msg.end_of_turn && text) {
-              live.textContent = "";
-              const speaker = msg.speaker_label || "A";
-              addTurn(speaker, text);
-            } else if (text) {
-              live.textContent = text;
-            }
+            if (msg.end_of_turn && text) { live.textContent = ""; addTurn(msg.speaker_label || "A", text); }
+            else if (text) live.textContent = text;
           }
         };
-
-        socket.onerror = () => {
-          live.textContent = "Errore WebSocket";
-          stop();
-        };
-
-        socket.onclose = () => {
-          if (running) stop();
-        };
-      } catch (err) {
-        live.textContent = "Errore: " + err.message;
-      }
+        socket.onerror = () => { live.textContent = "Errore WebSocket"; stop(); };
+        socket.onclose = () => { if (running) stop(); };
+      } catch (err) { live.textContent = "Errore: " + err.message; }
     }
 
     function addTurn(speaker, text) {
       const id = ++sentenceId;
       const div = document.createElement("div");
-      div.className = "turn";
-      div.id = "turn-" + id;
-      div.innerHTML =
-        `<div class="speaker">Speaker ${speaker}</div>
-         <div class="txt"></div>
-         <div class="semplice"></div>
-         <div class="lis pending">Traduzione LIS...</div>`;
+      div.className = "turn"; div.id = "turn-" + id;
+      div.innerHTML = `<div class="speaker">Speaker ${speaker}</div><div class="txt"></div><div class="semplice"></div><div class="lis pending">Traduzione LIS...</div>`;
       div.querySelector(".txt").textContent = text;
-      turns.prepend(div);
-      turns.classList.remove("empty");
+      turns.prepend(div); turns.classList.remove("empty");
       translateTurn(id, text);
     }
 
     async function translateTurn(id, text) {
       try {
-        const res = await fetch("/api/translate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: text }),
-        });
+        const res = await fetch("/api/translate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
         const data = await res.json();
         const div = document.getElementById("turn-" + id);
         if (!div) return;
         div.querySelector(".semplice").textContent = data.italiano || "";
         const lisBox = div.querySelector(".lis");
         lisBox.innerHTML = "";
-        if (data.errore_lis) {
-          lisBox.textContent = "Errore LIS: " + data.errore_lis;
-        } else {
-          renderLis(lisBox, data.lis || "");
-        }
+        if (data.errore_lis) lisBox.textContent = "Errore LIS: " + data.errore_lis;
+        else renderLis(lisBox, data.lis || "");
         lisBox.classList.remove("pending");
       } catch (err) {
         const div = document.getElementById("turn-" + id);
@@ -176,84 +409,56 @@
 
     function renderLis(container, lisText) {
       const glosses = lisText.split(/\s+/).filter(Boolean);
-      if (!glosses.length) {
-        container.textContent = "";
-        return;
-      }
+      if (!glosses.length) { container.textContent = ""; return; }
       for (const gloss of glosses) {
         const entry = dictionary[gloss];
-        if (entry && entry.video) {
-          container.appendChild(makeVideo(entry.video, gloss));
-        } else if (entry && entry.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) {
+        if (entry && entry.video) container.appendChild(makeVideo(entry.video, gloss));
+        else if (entry && entry.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) {
           try {
-            const svg = ssw.ttf.fsw.signSvg(entry.fsw);
-            const span = document.createElement("span");
-            span.className = "sign-inline";
-            span.innerHTML = svg + `<div class="gloss-label">${gloss}</div>`;
+            const span = document.createElement("span"); span.className = "sign-inline";
+            span.innerHTML = ssw.ttf.fsw.signSvg(entry.fsw) + `<div class="gloss-label">${gloss}</div>`;
             container.appendChild(span);
-          } catch (e) {
-            container.appendChild(makeGloss(gloss));
-          }
-        } else {
-          container.appendChild(makeGloss(gloss));
-        }
+          } catch (e) { container.appendChild(makeGloss(gloss)); }
+        } else container.appendChild(makeGloss(gloss));
       }
     }
 
     function makeVideo(src, gloss) {
-      const span = document.createElement("span");
-      span.className = "sign-inline";
+      const span = document.createElement("span"); span.className = "sign-inline";
       const video = document.createElement("video");
-      video.src = src;
-      video.muted = true;
-      video.loop = true;
-      video.autoplay = true;
-      video.playsInline = true;
-      video.controls = false;
-      video.setAttribute("style", "width:70px;height:70px;object-fit:cover;border-radius:6px;");
-      span.appendChild(video);
-      span.appendChild(document.createElement("br"));
-      const label = document.createElement("span");
-      label.className = "gloss-label";
-      label.textContent = gloss;
-      span.appendChild(label);
-      return span;
+      video.src = src; video.muted = true; video.loop = true; video.autoplay = true; video.playsInline = true;
+      video.style = "width:70px;height:70px;object-fit:cover;border-radius:6px;";
+      span.appendChild(video); span.appendChild(document.createElement("br"));
+      const label = document.createElement("span"); label.className = "gloss-label"; label.textContent = gloss;
+      span.appendChild(label); return span;
     }
 
     function makeGloss(text) {
-      const span = document.createElement("span");
-      span.className = "gloss-plain";
-      span.textContent = text;
-      return span;
+      const span = document.createElement("span"); span.className = "gloss-plain"; span.textContent = text; return span;
     }
 
     function floatTo16BitPCM(float32) {
       const int16 = new Int16Array(float32.length);
-      for (let i = 0; i < float32.length; i++) {
-        const s = Math.max(-1, Math.min(1, float32[i]));
-        int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-      }
+      for (let i = 0; i < float32.length; i++) { const s = Math.max(-1, Math.min(1, float32[i])); int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF; }
       return int16.buffer;
     }
 
     function stop() {
       running = false;
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ type: "Terminate" }));
-      }
+      if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: "Terminate" }));
       if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
       if (audioContext) { audioContext.close(); audioContext = null; }
       if (socket) { socket.close(); socket = null; }
-      toggle.textContent = "Avvia";
-      toggle.classList.remove("on");
-      live.textContent = "In attesa...";
-      live.classList.add("empty");
+      toggle.textContent = "Avvia"; toggle.classList.remove("on");
+      live.textContent = "In attesa..."; live.classList.add("empty");
     }
 
+    // init
+    refreshAuth();
+    refreshDictionary();
+
     if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/static/sw.js");
-      });
+      window.addEventListener("load", () => navigator.serviceWorker.register("/static/sw.js"));
     }
   </script>
 </body>

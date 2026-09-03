@@ -1,15 +1,13 @@
 import os
 import time
-import uuid
 
 import cloudinary
 import requests
 from cloudinary import uploader
-from flask import Flask, jsonify, render_template, request, send_from_directory
+from flask import Flask, jsonify, render_template, request
 
-import dictionary
 import envloader
-from glossary import Glossary
+import store
 from lis_translator import LisTranslator
 
 envloader.load_env()
@@ -17,11 +15,7 @@ envloader.load_env()
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024
 
-glossary = Glossary()
-
 ASSEMBLYAI_TOKEN_URL = "https://streaming.assemblyai.com/v3/token"
-
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
 
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME", ""),
@@ -33,11 +27,6 @@ cloudinary.config(
 @app.route("/")
 def index():
     return render_template("index.html")
-
-
-@app.route("/admin")
-def admin():
-    return render_template("admin.html")
 
 
 @app.errorhandler(Exception)
@@ -75,35 +64,83 @@ def translate():
     return jsonify(result)
 
 
-def _check_admin():
-    if not ADMIN_PASSWORD:
-        return True
-    token = request.headers.get("X-Admin-Token", "")
-    return token == ADMIN_PASSWORD
+def _current_user():
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return None
+    token = auth[len("Bearer "):]
+    try:
+        r = store.client().auth.get_user(token)
+        return r.user.id
+    except Exception:
+        return None
 
 
-@app.route("/api/admin_status")
-def admin_status():
-    return jsonify({"auth_required": bool(ADMIN_PASSWORD)})
+@app.route("/api/auth/signup", methods=["POST"])
+def signup():
+    data = request.get_json(silent=True) or {}
+    email = data.get("email", "").strip()
+    password = data.get("password", "")
+    if not email or not password:
+        return jsonify({"error": "email e password richieste"}), 400
+    try:
+        r = store.client().auth.sign_up({"email": email, "password": password})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    return jsonify({
+        "access_token": r.session.access_token if r.session else None,
+        "user_id": r.user.id if r.user else None,
+        "user": r.user.email if r.user else email,
+    })
+
+
+@app.route("/api/auth/login", methods=["POST"])
+def login():
+    data = request.get_json(silent=True) or {}
+    email = data.get("email", "").strip()
+    password = data.get("password", "")
+    if not email or not password:
+        return jsonify({"error": "email e password richieste"}), 400
+    try:
+        r = store.client().auth.sign_in_with_password({"email": email, "password": password})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 401
+    return jsonify({
+        "access_token": r.session.access_token,
+        "user_id": r.user.id,
+        "user": r.user.email,
+    })
+
+
+@app.route("/api/auth/me")
+def me():
+    user_id = _current_user()
+    if not user_id:
+        return jsonify({"error": "Non autenticato"}), 401
+    return jsonify({"user_id": user_id})
 
 
 @app.route("/api/dictionary", methods=["GET"])
 def get_dictionary():
-    return jsonify({"segni": dictionary.load()})
+    user_id = _current_user()
+    return jsonify({"segni": store.get_signs(user_id)})
 
 
 @app.route("/api/dictionary", methods=["POST"])
 def upsert_dictionary():
-    if not _check_admin():
-        return jsonify({"error": "Non autorizzato"}), 401
+    user_id = _current_user()
+    if not user_id:
+        return jsonify({"error": "Non autenticato"}), 401
     data = request.get_json(silent=True) or {}
     try:
-        segni = dictionary.upsert(
+        segni = store.upsert_sign(
+            user_id,
             data.get("gloss", ""),
             data.get("fsw", ""),
             data.get("validato", False),
             data.get("nota", ""),
             data.get("video", ""),
+            personal=True,
         )
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
@@ -115,8 +152,9 @@ ALLOWED_VIDEO_EXT = {".mp4", ".webm", ".mov"}
 
 @app.route("/api/upload_video", methods=["POST"])
 def upload_video():
-    if not _check_admin():
-        return jsonify({"error": "Non autorizzato"}), 401
+    user_id = _current_user()
+    if not user_id:
+        return jsonify({"error": "Non autenticato"}), 401
     gloss = request.form.get("gloss", "").strip().upper()
     file = request.files.get("video")
     if not gloss or not file:
@@ -129,21 +167,22 @@ def upload_video():
     result = uploader.upload(
         file,
         resource_type="video",
-        public_id=f"lis_{gloss}",
+        public_id=f"lis_{gloss}_{user_id}",
         overwrite=True,
         folder="lis_bridge",
     )
     video_url = result.get("secure_url", "")
 
-    dictionary.upsert(gloss, "", False, "", video_url)
-    return jsonify({"video_url": video_url, "segni": dictionary.load()})
+    store.upsert_sign(user_id, gloss, "", False, "", video_url, personal=True)
+    return jsonify({"video_url": video_url, "segni": store.get_signs(user_id)})
 
 
 @app.route("/api/dictionary/<gloss>", methods=["DELETE"])
 def delete_dictionary(gloss):
-    if not _check_admin():
-        return jsonify({"error": "Non autorizzato"}), 401
-    segni = dictionary.delete(gloss)
+    user_id = _current_user()
+    if not user_id:
+        return jsonify({"error": "Non autenticato"}), 401
+    segni = store.delete_sign(user_id, gloss, personal=True)
     return jsonify({"segni": segni})
 
 
