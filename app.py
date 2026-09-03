@@ -2,7 +2,9 @@ import os
 import time
 import uuid
 
+import cloudinary
 import requests
+from cloudinary import uploader
 from flask import Flask, jsonify, render_template, request, send_from_directory
 
 import dictionary
@@ -21,8 +23,11 @@ ASSEMBLYAI_TOKEN_URL = "https://streaming.assemblyai.com/v3/token"
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
 
-VIDEO_DIR = os.path.join(os.path.dirname(__file__), "static", "videos")
-os.makedirs(VIDEO_DIR, exist_ok=True)
+cloudinary.config(
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME", ""),
+    api_key=os.environ.get("CLOUDINARY_API_KEY", ""),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET", ""),
+)
 
 
 @app.route("/")
@@ -121,11 +126,15 @@ def upload_video():
     if ext not in ALLOWED_VIDEO_EXT:
         return jsonify({"error": "Formato non supportato (usa mp4, webm o mov)"}), 400
 
-    filename = f"{gloss}{ext}"
-    path = os.path.join(VIDEO_DIR, filename)
-    file.save(path)
+    result = uploader.upload(
+        file,
+        resource_type="video",
+        public_id=f"lis_{gloss}",
+        overwrite=True,
+        folder="lis_bridge",
+    )
+    video_url = result.get("secure_url", "")
 
-    video_url = f"/static/videos/{filename}"
     dictionary.upsert(gloss, "", False, "", video_url)
     return jsonify({"video_url": video_url, "segni": dictionary.load()})
 
