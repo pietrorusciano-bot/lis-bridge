@@ -35,7 +35,10 @@ def index():
 def assetlinks():
     import os as _os
     path = _os.path.join(_os.path.dirname(__file__), ".well-known", "assetlinks.json")
-    return send_from_directory(_os.path.dirname(path), "assetlinks.json")
+    with open(path, encoding="utf-8") as f:
+        content = f.read()
+    from flask import Response
+    return Response(content, mimetype="application/json")
 
 
 @app.errorhandler(Exception)
