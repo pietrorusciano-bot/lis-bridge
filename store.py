@@ -67,6 +67,16 @@ def upsert_sign(user_id, gloss, fsw="", validato=False, nota="", video="", perso
     return get_signs(user_id)
 
 
+def get_global_signs():
+    result = {}
+    r = _client.table("signs").select("*").is_("user_id", "null").execute()
+    for row in r.data:
+        gloss = (row.get("gloss") or "").strip().upper()
+        if gloss:
+            result[gloss] = _to_entry(row)
+    return result
+
+
 def delete_sign(user_id, gloss, personal=True):
     gloss = gloss.strip().upper()
     owner = user_id if personal else None

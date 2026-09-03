@@ -17,6 +17,8 @@ app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024
 
 ASSEMBLYAI_TOKEN_URL = "https://streaming.assemblyai.com/v3/token"
 
+ADMIN_EMAIL = (os.environ.get("ADMIN_EMAIL", "") or "").strip().lower()
+
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME", ""),
     api_key=os.environ.get("CLOUDINARY_API_KEY", ""),
@@ -76,6 +78,23 @@ def _current_user():
         return None
 
 
+def _current_email():
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return None
+    token = auth[len("Bearer "):]
+    try:
+        r = store.client().auth.get_user(token)
+        return (r.user.email or "").strip().lower()
+    except Exception:
+        return None
+
+
+def _is_admin():
+    email = _current_email()
+    return bool(ADMIN_EMAIL and email == ADMIN_EMAIL)
+
+
 @app.route("/api/auth/signup", methods=["POST"])
 def signup():
     data = request.get_json(silent=True) or {}
@@ -117,7 +136,11 @@ def me():
     user_id = _current_user()
     if not user_id:
         return jsonify({"error": "Non autenticato"}), 401
-    return jsonify({"user_id": user_id})
+    return jsonify({
+        "user_id": user_id,
+        "email": _current_email(),
+        "is_admin": _is_admin(),
+    })
 
 
 @app.route("/api/dictionary", methods=["GET"])
@@ -184,6 +207,62 @@ def delete_dictionary(gloss):
         return jsonify({"error": "Non autenticato"}), 401
     segni = store.delete_sign(user_id, gloss, personal=True)
     return jsonify({"segni": segni})
+
+
+@app.route("/api/global/signs", methods=["GET"])
+def get_global_signs():
+    return jsonify({"segni": store.get_global_signs()})
+
+
+@app.route("/api/global/signs", methods=["POST"])
+def upsert_global_sign():
+    if not _is_admin():
+        return jsonify({"error": "Solo l'amministratore può gestire il catalogo globale"}), 403
+    data = request.get_json(silent=True) or {}
+    try:
+        store.upsert_sign(
+            None,
+            data.get("gloss", ""),
+            data.get("fsw", ""),
+            data.get("validato", False),
+            data.get("nota", ""),
+            data.get("video", ""),
+            personal=False,
+        )
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    return jsonify({"segni": store.get_global_signs()})
+
+
+@app.route("/api/global/signs/<gloss>", methods=["DELETE"])
+def delete_global_sign(gloss):
+    if not _is_admin():
+        return jsonify({"error": "Solo l'amministratore può gestire il catalogo globale"}), 403
+    store.delete_sign(None, gloss, personal=False)
+    return jsonify({"segni": store.get_global_signs()})
+
+
+@app.route("/api/global/upload_video", methods=["POST"])
+def upload_global_video():
+    if not _is_admin():
+        return jsonify({"error": "Solo l'amministratore può gestire il catalogo globale"}), 403
+    gloss = request.form.get("gloss", "").strip().upper()
+    file = request.files.get("video")
+    if not gloss or not file:
+        return jsonify({"error": "glossa o file mancante"}), 400
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_VIDEO_EXT:
+        return jsonify({"error": "Formato non supportato (usa mp4, webm o mov)"}), 400
+    result = uploader.upload(
+        file,
+        resource_type="video",
+        public_id=f"lis_global_{gloss}",
+        overwrite=True,
+        folder="lis_bridge",
+    )
+    video_url = result.get("secure_url", "")
+    store.upsert_sign(None, gloss, "", False, "", video_url, personal=False)
+    return jsonify({"video_url": video_url, "segni": store.get_global_signs()})
 
 
 if __name__ == "__main__":

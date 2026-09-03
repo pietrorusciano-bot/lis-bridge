@@ -115,6 +115,27 @@
     </div>
 
     <div id="manageBox" class="hidden">
+      <div id="globalBox" class="hidden">
+        <div class="manage-box" style="border-color:#1a73e8">
+          <h2>Catalogo globale (amministratore)</h2>
+          <p class="hint">Questi segni sono condivisi da tutti gli utenti.</p>
+
+          <h3>Carica video globale</h3>
+          <div class="row">
+            <input type="text" id="gvgloss" placeholder="Glossa (es. CASA)">
+            <input type="file" id="gvfile" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov">
+          </div>
+          <button id="gupload" style="background:#1a73e8;color:#fff;margin-top:10px">Carica video globale</button>
+          <div id="gvmsg" class="msg"></div>
+
+          <h3>Segni globali</h3>
+          <table>
+            <thead><tr><th>Glossa</th><th>Segno</th><th>Azioni</th></tr></thead>
+            <tbody id="grows"></tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="manage-box">
         <h2>Carica video del segno</h2>
         <p class="hint">Il video è il metodo più chiaro. Verrà associato alla tua glossa personale.</p>
@@ -152,6 +173,7 @@
   <script>
     let token = localStorage.getItem("token") || "";
     let userEmail = localStorage.getItem("userEmail") || "";
+    let isAdmin = localStorage.getItem("isAdmin") === "1";
     let dictionary = {};
 
     let socket = null, audioContext = null, processor = null, stream = null, running = false, sentenceId = 0;
@@ -170,17 +192,59 @@
       const logoutBtn = document.getElementById("logoutBtn");
       const authBox = document.getElementById("authBox");
       const manageBox = document.getElementById("manageBox");
+      const globalBox = document.getElementById("globalBox");
       if (token) {
-        userLabel.textContent = userEmail || "Autenticato";
+        userLabel.textContent = (userEmail || "Autenticato") + (isAdmin ? " (admin)" : "");
         logoutBtn.classList.remove("hidden");
         authBox.classList.add("hidden");
         manageBox.classList.remove("hidden");
+        if (isAdmin) { globalBox.classList.remove("hidden"); refreshGlobal(); }
+        else { globalBox.classList.add("hidden"); }
       } else {
         userLabel.textContent = "Non autenticato";
         logoutBtn.classList.add("hidden");
         authBox.classList.remove("hidden");
         manageBox.classList.add("hidden");
+        globalBox.classList.add("hidden");
       }
+    }
+
+    async function refreshGlobal() {
+      try {
+        const res = await fetch("/api/global/signs");
+        const data = await res.json();
+        renderGlobalRows(data.segni || {});
+      } catch (e) {}
+    }
+
+    function renderGlobalRows(globalSegni) {
+      const rows = document.getElementById("grows");
+      rows.innerHTML = "";
+      const keys = Object.keys(globalSegni).sort();
+      if (!keys.length) { rows.innerHTML = '<tr><td colspan="3" class="empty">Nessun segno globale.</td></tr>'; return; }
+      for (const gloss of keys) {
+        const s = globalSegni[gloss];
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td><b>${gloss}</b></td><td class="gcell"></td><td><button class="del gdel" data-gloss="${gloss}">Elimina</button></td>`;
+        rows.appendChild(tr);
+        try {
+          const cell = tr.querySelector(".gcell");
+          if (s.video) cell.innerHTML = `<video src="${s.video}" muted loop autoplay playsinline style="width:60px;height:60px;object-fit:cover;border-radius:6px"></video>`;
+          else if (s.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) cell.innerHTML = ssw.ttf.fsw.signSvg(s.fsw);
+          else cell.textContent = "—";
+        } catch (e) {}
+      }
+      document.querySelectorAll(".gdel").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          if (!confirm("Eliminare il segno globale " + btn.dataset.gloss + "?")) return;
+          try {
+            const res = await fetch("/api/global/signs/" + encodeURIComponent(btn.dataset.gloss), { method: "DELETE", headers: authHeaders() });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "errore");
+            renderGlobalRows(data.segni || {});
+          } catch (e) { alert("Errore: " + e.message); }
+        });
+      });
     }
 
     function authHeaders() {
@@ -213,10 +277,20 @@
         token = data.access_token; userEmail = data.user;
         localStorage.setItem("token", token);
         localStorage.setItem("userEmail", userEmail);
+        await setAdminFlag();
         refreshAuth(); await refreshDictionary();
         msg.textContent = "Accesso effettuato"; msg.className = "auth-msg ok";
       } catch (e) { msg.textContent = "Errore: " + e.message; msg.className = "auth-msg err"; }
     });
+
+    async function setAdminFlag() {
+      try {
+        const res = await fetch("/api/auth/me", { headers: authHeaders() });
+        const data = await res.json();
+        isAdmin = !!data.is_admin;
+        localStorage.setItem("isAdmin", isAdmin ? "1" : "0");
+      } catch (e) { isAdmin = false; }
+    }
 
     document.getElementById("signupBtn").addEventListener("click", async () => {
       const email = document.getElementById("email").value.trim();
@@ -235,6 +309,7 @@
           token = data.access_token; userEmail = data.user;
           localStorage.setItem("token", token);
           localStorage.setItem("userEmail", userEmail);
+          await setAdminFlag();
           refreshAuth(); await refreshDictionary();
           msg.textContent = "Registrazione completata"; msg.className = "auth-msg ok";
         } else {
@@ -244,8 +319,8 @@
     });
 
     document.getElementById("logoutBtn").addEventListener("click", () => {
-      token = ""; userEmail = "";
-      localStorage.removeItem("token"); localStorage.removeItem("userEmail");
+      token = ""; userEmail = ""; isAdmin = false;
+      localStorage.removeItem("token"); localStorage.removeItem("userEmail"); localStorage.removeItem("isAdmin");
       dictionary = {};
       refreshAuth(); refreshDictionary();
     });
@@ -336,6 +411,27 @@
         dictionary = data.segni || {}; renderRows();
         document.getElementById("vgloss").value = ""; fileInput.value = "";
         vmsg.textContent = "Video caricato per " + gloss; vmsg.className = "msg ok";
+      } catch (e) { vmsg.textContent = "Errore: " + e.message; vmsg.className = "msg err"; }
+    });
+
+    document.getElementById("gupload").addEventListener("click", async () => {
+      const gloss = document.getElementById("gvgloss").value.trim().toUpperCase();
+      const fileInput = document.getElementById("gvfile");
+      const vmsg = document.getElementById("gvmsg");
+      vmsg.textContent = ""; vmsg.className = "msg";
+      if (!gloss || !fileInput.files.length) { vmsg.textContent = "Inserisci glossa e file"; vmsg.className = "msg err"; return; }
+      const fd = new FormData();
+      fd.append("gloss", gloss);
+      fd.append("video", fileInput.files[0]);
+      try {
+        const h = {}; if (token) h["Authorization"] = "Bearer " + token;
+        const res = await fetch("/api/global/upload_video", { method: "POST", headers: h, body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "errore");
+        renderGlobalRows(data.segni || {});
+        document.getElementById("gvgloss").value = ""; fileInput.value = "";
+        vmsg.textContent = "Video globale caricato per " + gloss; vmsg.className = "msg ok";
+        await refreshDictionary();
       } catch (e) { vmsg.textContent = "Errore: " + e.message; vmsg.className = "msg err"; }
     });
 
