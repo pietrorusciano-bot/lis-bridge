@@ -181,6 +181,7 @@ def upsert_dictionary():
 
 
 ALLOWED_VIDEO_EXT = {".mp4", ".webm", ".mov"}
+ALLOWED_IMAGE_EXT = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"}
 
 
 @app.route("/api/upload_video", methods=["POST"])
@@ -206,8 +207,35 @@ def upload_video():
     )
     video_url = result.get("secure_url", "")
 
-    store.upsert_sign(user_id, gloss, "", False, "", video_url, personal=True)
+    store.upsert_sign(user_id, gloss, "", False, "", video_url, "", personal=True)
     return jsonify({"video_url": video_url, "segni": store.get_signs(user_id)})
+
+
+@app.route("/api/upload_image", methods=["POST"])
+def upload_image():
+    user_id = _current_user()
+    if not user_id:
+        return jsonify({"error": "Non autenticato"}), 401
+    gloss = request.form.get("gloss", "").strip().upper()
+    file = request.files.get("image")
+    if not gloss or not file:
+        return jsonify({"error": "glossa o file mancante"}), 400
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_IMAGE_EXT:
+        return jsonify({"error": "Formato non supportato (usa png, jpg, gif, webp)"}), 400
+
+    result = uploader.upload(
+        file,
+        resource_type="image",
+        public_id=f"lis_img_{gloss}_{user_id}",
+        overwrite=True,
+        folder="lis_bridge",
+    )
+    image_url = result.get("secure_url", "")
+
+    store.upsert_sign(user_id, gloss, "", False, "", "", image_url, personal=True)
+    return jsonify({"image_url": image_url, "segni": store.get_signs(user_id)})
 
 
 @app.route("/api/dictionary/<gloss>", methods=["DELETE"])
@@ -271,8 +299,31 @@ def upload_global_video():
         folder="lis_bridge",
     )
     video_url = result.get("secure_url", "")
-    store.upsert_sign(None, gloss, "", False, "", video_url, personal=False)
+    store.upsert_sign(None, gloss, "", False, "", video_url, "", personal=False)
     return jsonify({"video_url": video_url, "segni": store.get_global_signs()})
+
+
+@app.route("/api/global/upload_image", methods=["POST"])
+def upload_global_image():
+    if not _is_admin():
+        return jsonify({"error": "Solo l'amministratore può gestire il catalogo globale"}), 403
+    gloss = request.form.get("gloss", "").strip().upper()
+    file = request.files.get("image")
+    if not gloss or not file:
+        return jsonify({"error": "glossa o file mancante"}), 400
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_IMAGE_EXT:
+        return jsonify({"error": "Formato non supportato (usa png, jpg, gif, webp)"}), 400
+    result = uploader.upload(
+        file,
+        resource_type="image",
+        public_id=f"lis_global_img_{gloss}",
+        overwrite=True,
+        folder="lis_bridge",
+    )
+    image_url = result.get("secure_url", "")
+    store.upsert_sign(None, gloss, "", False, "", "", image_url, personal=False)
+    return jsonify({"image_url": image_url, "segni": store.get_global_signs()})
 
 
 if __name__ == "__main__":

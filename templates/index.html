@@ -75,6 +75,15 @@
     .preview { background: #fef4e6; border: 1px solid #f0d8b0; border-radius: 6px; padding: 12px; margin-top: 12px; text-align: center; min-height: 60px; }
     .hint { color: #888; font-size: 0.85rem; }
     .hidden { display: none; }
+
+    .sign-inline.clickable { cursor: pointer; }
+    .sign-inline.clickable:hover { opacity: 0.85; }
+    #lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; flex-direction: column; padding: 20px; }
+    #lightbox .lb-content { max-width: 92vw; max-height: 80vh; display: flex; align-items: center; justify-content: center; }
+    #lightbox img, #lightbox video { max-width: 92vw; max-height: 80vh; object-fit: contain; border-radius: 10px; }
+    #lightbox svg { max-width: 92vw; max-height: 80vh; }
+    #lightbox .lb-label { color: #fff; margin-top: 12px; font-size: 1.2rem; font-weight: bold; }
+    #lightbox .lb-close { position: absolute; top: 16px; right: 20px; color: #fff; font-size: 2rem; cursor: pointer; background: none; border: none; padding: 8px; line-height: 1; }
   </style>
 </head>
 <body>
@@ -128,6 +137,14 @@
           <button id="gupload" style="background:#1a73e8;color:#fff;margin-top:10px">Carica video globale</button>
           <div id="gvmsg" class="msg"></div>
 
+          <h3>Carica immagine globale</h3>
+          <div class="row">
+            <input type="text" id="gigloss" placeholder="Glossa (es. CASA)">
+            <input type="file" id="gifile" accept="image/png,image/jpeg,image/gif,image/webp,.png,.jpg,.jpeg,.gif,.webp">
+          </div>
+          <button id="giupload" style="background:#1a73e8;color:#fff;margin-top:10px">Carica immagine globale</button>
+          <div id="gimsg" class="msg"></div>
+
           <h3>Segni globali</h3>
           <table>
             <thead><tr><th>Glossa</th><th>Segno</th><th>Azioni</th></tr></thead>
@@ -145,6 +162,17 @@
         </div>
         <button id="upload" style="background:#1a73e8;color:#fff;margin-top:10px">Carica video</button>
         <div id="vmsg" class="msg"></div>
+      </div>
+
+      <div class="manage-box">
+        <h2>Carica immagine del segno</h2>
+        <p class="hint">Alternativa al video: un'immagine del segno (disegno, foto, pittogramma).</p>
+        <div class="row">
+          <input type="text" id="igloss" placeholder="Glossa (es. CASA)">
+          <input type="file" id="ifile" accept="image/png,image/jpeg,image/gif,image/webp,.png,.jpg,.jpeg,.gif,.webp">
+        </div>
+        <button id="iupload" style="background:#1a73e8;color:#fff;margin-top:10px">Carica immagine</button>
+        <div id="imsg" class="msg"></div>
       </div>
 
       <div class="manage-box">
@@ -168,6 +196,12 @@
         <tbody id="rows"></tbody>
       </table>
     </div>
+  </div>
+
+  <div id="lightbox" class="hidden">
+    <button class="lb-close" id="lbClose">×</button>
+    <div class="lb-content" id="lbContent"></div>
+    <div class="lb-label" id="lbLabel"></div>
   </div>
 
   <script>
@@ -231,6 +265,7 @@
           const cell = tr.querySelector(".gcell");
           if (s.video) cell.innerHTML = `<video src="${s.video}" muted loop autoplay playsinline style="width:60px;height:60px;object-fit:cover;border-radius:6px"></video>`;
           else if (s.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) cell.innerHTML = ssw.ttf.fsw.signSvg(s.fsw);
+          else if (s.image) cell.innerHTML = `<img src="${s.image}" alt="${gloss}" style="width:60px;height:60px;object-fit:contain;border-radius:6px">`;
           else cell.textContent = "—";
         } catch (e) {}
       }
@@ -347,6 +382,8 @@
             cell.innerHTML = `<video src="${s.video}" muted loop autoplay playsinline style="width:60px;height:60px;object-fit:cover;border-radius:6px"></video>`;
           } else if (s.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) {
             cell.innerHTML = ssw.ttf.fsw.signSvg(s.fsw);
+          } else if (s.image) {
+            cell.innerHTML = `<img src="${s.image}" alt="${gloss}" style="width:60px;height:60px;object-fit:contain;border-radius:6px">`;
           } else { cell.textContent = "—"; }
         } catch (e) {}
       }
@@ -440,6 +477,47 @@
       } catch (e) { vmsg.textContent = "Errore: " + e.message; vmsg.className = "msg err"; }
     });
 
+    document.getElementById("iupload").addEventListener("click", async () => {
+      const gloss = document.getElementById("igloss").value.trim().toUpperCase();
+      const fileInput = document.getElementById("ifile");
+      const imsg = document.getElementById("imsg");
+      imsg.textContent = ""; imsg.className = "msg";
+      if (!gloss || !fileInput.files.length) { imsg.textContent = "Inserisci glossa e file"; imsg.className = "msg err"; return; }
+      const fd = new FormData();
+      fd.append("gloss", gloss);
+      fd.append("image", fileInput.files[0]);
+      try {
+        const h = {}; if (token) h["Authorization"] = "Bearer " + token;
+        const res = await fetch("/api/upload_image", { method: "POST", headers: h, body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "errore");
+        dictionary = data.segni || {}; renderRows();
+        document.getElementById("igloss").value = ""; fileInput.value = "";
+        imsg.textContent = "Immagine caricata per " + gloss; imsg.className = "msg ok";
+      } catch (e) { imsg.textContent = "Errore: " + e.message; imsg.className = "msg err"; }
+    });
+
+    document.getElementById("giupload").addEventListener("click", async () => {
+      const gloss = document.getElementById("gigloss").value.trim().toUpperCase();
+      const fileInput = document.getElementById("gifile");
+      const imsg = document.getElementById("gimsg");
+      imsg.textContent = ""; imsg.className = "msg";
+      if (!gloss || !fileInput.files.length) { imsg.textContent = "Inserisci glossa e file"; imsg.className = "msg err"; return; }
+      const fd = new FormData();
+      fd.append("gloss", gloss);
+      fd.append("image", fileInput.files[0]);
+      try {
+        const h = {}; if (token) h["Authorization"] = "Bearer " + token;
+        const res = await fetch("/api/global/upload_image", { method: "POST", headers: h, body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "errore");
+        renderGlobalRows(data.segni || {});
+        document.getElementById("gigloss").value = ""; fileInput.value = "";
+        imsg.textContent = "Immagine globale caricata per " + gloss; imsg.className = "msg ok";
+        await refreshDictionary();
+      } catch (e) { imsg.textContent = "Errore: " + e.message; imsg.className = "msg err"; }
+    });
+
     // ---------- UTILIZZO (trascrizione) ----------
     const toggle = document.getElementById("toggle");
     const live = document.getElementById("live");
@@ -516,27 +594,76 @@
         if (entry && entry.video) container.appendChild(makeVideo(entry.video, gloss));
         else if (entry && entry.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) {
           try {
-            const span = document.createElement("span"); span.className = "sign-inline";
+            const span = document.createElement("span"); span.className = "sign-inline clickable";
             span.innerHTML = ssw.ttf.fsw.signSvg(entry.fsw) + `<div class="gloss-label">${gloss}</div>`;
+            span.addEventListener("click", () => openLightbox("fsw", entry.fsw, gloss));
             container.appendChild(span);
           } catch (e) { container.appendChild(makeGloss(gloss)); }
-        } else container.appendChild(makeGloss(gloss));
+        } else if (entry && entry.image) container.appendChild(makeImage(entry.image, gloss));
+        else container.appendChild(makeGloss(gloss));
       }
     }
 
     function makeVideo(src, gloss) {
-      const span = document.createElement("span"); span.className = "sign-inline";
+      const span = document.createElement("span"); span.className = "sign-inline clickable";
       const video = document.createElement("video");
       video.src = src; video.muted = true; video.loop = true; video.autoplay = true; video.playsInline = true;
       video.style = "width:70px;height:70px;object-fit:cover;border-radius:6px;";
       span.appendChild(video); span.appendChild(document.createElement("br"));
       const label = document.createElement("span"); label.className = "gloss-label"; label.textContent = gloss;
-      span.appendChild(label); return span;
+      span.appendChild(label);
+      span.addEventListener("click", () => openLightbox("video", src, gloss));
+      return span;
+    }
+
+    function makeImage(src, gloss) {
+      const span = document.createElement("span"); span.className = "sign-inline clickable";
+      const img = document.createElement("img");
+      img.src = src; img.alt = gloss;
+      img.style = "width:70px;height:70px;object-fit:contain;border-radius:6px;";
+      span.appendChild(img); span.appendChild(document.createElement("br"));
+      const label = document.createElement("span"); label.className = "gloss-label"; label.textContent = gloss;
+      span.appendChild(label);
+      span.addEventListener("click", () => openLightbox("image", src, gloss));
+      return span;
     }
 
     function makeGloss(text) {
       const span = document.createElement("span"); span.className = "gloss-plain"; span.textContent = text; return span;
     }
+
+    function openLightbox(type, src, gloss) {
+      const lb = document.getElementById("lightbox");
+      const content = document.getElementById("lbContent");
+      const label = document.getElementById("lbLabel");
+      content.innerHTML = "";
+      if (type === "image") {
+        const img = document.createElement("img");
+        img.src = src; img.alt = gloss;
+        content.appendChild(img);
+      } else if (type === "video") {
+        const video = document.createElement("video");
+        video.src = src; video.controls = true; video.autoplay = true; video.playsInline = true;
+        content.appendChild(video);
+      } else if (type === "fsw") {
+        try {
+          if (typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) content.innerHTML = ssw.ttf.fsw.signSvg(src);
+        } catch (e) {}
+      }
+      label.textContent = gloss || "";
+      lb.classList.remove("hidden");
+    }
+
+    function closeLightbox() {
+      const lb = document.getElementById("lightbox");
+      document.getElementById("lbContent").innerHTML = "";
+      lb.classList.add("hidden");
+    }
+
+    document.getElementById("lbClose").addEventListener("click", closeLightbox);
+    document.getElementById("lightbox").addEventListener("click", (e) => {
+      if (e.target.id === "lightbox") closeLightbox();
+    });
 
     function floatTo16BitPCM(float32) {
       const int16 = new Int16Array(float32.length);

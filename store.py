@@ -37,11 +37,12 @@ def _to_entry(row):
         "validato": bool(row.get("validato")),
         "nota": row.get("nota") or "",
         "video": row.get("video") or "",
+        "image": row.get("image") or "",
         "user_id": row.get("user_id"),
     }
 
 
-def upsert_sign(user_id, gloss, fsw="", validato=False, nota="", video="", personal=True):
+def upsert_sign(user_id, gloss, fsw="", validato=False, nota="", video="", image="", personal=True):
     gloss = gloss.strip().upper()
     if not gloss:
         raise ValueError("La glossa non può essere vuota")
@@ -57,6 +58,7 @@ def upsert_sign(user_id, gloss, fsw="", validato=False, nota="", video="", perso
         "validato": bool(validato),
         "nota": (nota or "").strip(),
         "video": (video or "").strip(),
+        "image": (image or "").strip(),
     }
     if r.data:
         _client.table("signs").update(data).eq("id", r.data[0]["id"]).execute()
