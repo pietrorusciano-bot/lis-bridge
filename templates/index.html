@@ -45,11 +45,7 @@
 
     .auth-box { border: 1px solid #ddd; border-radius: 10px; padding: 20px; margin: 16px 0; }
     .auth-box input { width: 100%; padding: 10px; margin: 6px 0; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; }
-    .auth-actions { display: flex; gap: 8px; margin-top: 10px; }
-    .auth-actions button { flex: 1; }
-    #loginBtn { background: #1a73e8; color: #fff; }
-    #signupBtn { background: #2a2; color: #fff; }
-    #logoutBtn { background: #555; color: #fff; font-size: 0.85rem; padding: 8px 14px; }
+    #unlockBtn { background: #1a73e8; color: #fff; width: 100%; margin-top: 8px; }
     .auth-msg { margin-top: 10px; font-weight: bold; }
     .auth-msg.err { color: #d33; }
     .auth-msg.ok { color: #187a3a; }
@@ -64,15 +60,10 @@
     table { width: 100%; border-collapse: collapse; margin-top: 16px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: middle; }
     th { background: #f5f5f5; }
-    .badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; }
-    .badge.ok { background: #d4edda; color: #155724; }
-    .badge.no { background: #f8d7da; color: #721c24; }
-    .badge.pers { background: #cfe2ff; color: #084298; }
     .del { background: #d33; color: #fff; padding: 4px 10px; }
     .msg { margin-top: 10px; font-weight: bold; }
     .msg.err { color: #d33; }
     .msg.ok { color: #187a3a; }
-    .preview { background: #fef4e6; border: 1px solid #f0d8b0; border-radius: 6px; padding: 12px; margin-top: 12px; text-align: center; min-height: 60px; }
     .hint { color: #888; font-size: 0.85rem; }
     .hidden { display: none; }
 
@@ -90,10 +81,6 @@
 <body>
   <header>
     <h1>LIS Bridge</h1>
-    <div id="userBox">
-      <span id="userLabel" class="hint">Non autenticato</span>
-      <button id="logoutBtn" class="hidden">Esci</button>
-    </div>
   </header>
 
   <nav>
@@ -113,50 +100,17 @@
   <!-- VISTA GESTIONE -->
   <div id="viewManage" class="view">
     <div id="authBox" class="auth-box">
-      <h2>Accedi</h2>
-      <p class="hint">Accedi per gestire i tuoi segni personali.</p>
-      <input type="email" id="email" placeholder="Email">
-      <input type="password" id="password" placeholder="Password">
-      <div class="auth-actions">
-        <button id="loginBtn">Accedi</button>
-        <button id="signupBtn">Registrati</button>
-      </div>
+      <h2>Accesso amministratore</h2>
+      <p class="hint">Inserisci la password per gestire il catalogo dei segni.</p>
+      <input type="password" id="adminPassword" placeholder="Password">
+      <button id="unlockBtn">Sblocca gestione</button>
       <div id="authMsg" class="auth-msg"></div>
     </div>
 
     <div id="manageBox" class="hidden">
-      <div id="globalBox" class="hidden">
-        <div class="manage-box" style="border-color:#1a73e8">
-          <h2>Catalogo globale (amministratore)</h2>
-          <p class="hint">Questi segni sono condivisi da tutti gli utenti.</p>
-
-          <h3>Carica video globale</h3>
-          <div class="row">
-            <input type="text" id="gvgloss" placeholder="Glossa (es. CASA)">
-            <input type="file" id="gvfile" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov">
-          </div>
-          <button id="gupload" style="background:#1a73e8;color:#fff;margin-top:10px">Carica video globale</button>
-          <div id="gvmsg" class="msg"></div>
-
-          <h3>Carica immagine globale</h3>
-          <div class="row">
-            <input type="text" id="gigloss" placeholder="Glossa (es. CASA)">
-            <input type="file" id="gifile" accept="image/png,image/jpeg,image/gif,image/webp,.png,.jpg,.jpeg,.gif,.webp">
-          </div>
-          <button id="giupload" style="background:#1a73e8;color:#fff;margin-top:10px">Carica immagine globale</button>
-          <div id="gimsg" class="msg"></div>
-
-          <h3>Segni globali</h3>
-          <table>
-            <thead><tr><th>Glossa</th><th>Segno</th><th>Azioni</th></tr></thead>
-            <tbody id="grows"></tbody>
-          </table>
-        </div>
-      </div>
-
       <div class="manage-box">
         <h2>Carica video del segno</h2>
-        <p class="hint">Il video è il metodo più chiaro. Verrà associato alla tua glossa personale.</p>
+        <p class="hint">Il video va su Cloudinary e viene associato alla glossa.</p>
         <div class="row">
           <input type="text" id="vgloss" placeholder="Glossa (es. CASA)">
           <input type="file" id="vfile" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov">
@@ -167,7 +121,7 @@
 
       <div class="manage-box">
         <h2>Carica immagine del segno</h2>
-        <p class="hint">Alternativa al video: un'immagine del segno (disegno, foto, pittogramma).</p>
+        <p class="hint">Un'immagine del segno (disegno, foto, pittogramma). Va su Cloudinary.</p>
         <div class="row">
           <input type="text" id="igloss" placeholder="Glossa (es. CASA)">
           <input type="file" id="ifile" accept="image/png,image/jpeg,image/gif,image/webp,.png,.jpg,.jpeg,.gif,.webp">
@@ -176,24 +130,10 @@
         <div id="imsg" class="msg"></div>
       </div>
 
-      <div class="manage-box">
-        <h2>Aggiungi segno (simbolo SignWriting)</h2>
-        <p class="hint">Alternativa al video: disegna il segno e incolla il codice FSW.</p>
-        <label for="gloss">Glossa (MAIUSCOLO)</label>
-        <input type="text" id="gloss" placeholder="CASA">
-        <label for="fsw">Codice FSW</label>
-        <textarea id="fsw" placeholder="M518x533S1870a489x515..."></textarea>
-        <div class="preview" id="preview">—</div>
-        <button id="save" style="background:#2a2;color:#fff;margin-top:10px" disabled>Salva segno</button>
-        <div id="msg" class="msg"></div>
-      </div>
-
-      <h2>I tuoi segni</h2>
-      <p class="hint">Mostra i segni globali (condivisi) e i tuoi segni personali.</p>
+      <h2>Catalogo dei segni</h2>
+      <p class="hint">Glosse con video o immagine associata. Elimina un segno se sbagliato.</p>
       <table>
-        <thead>
-          <tr><th>Glossa</th><th>Segno</th><th>Tipo</th><th>Azioni</th></tr>
-        </thead>
+        <thead><tr><th>Glossa</th><th>Segno</th><th>Azioni</th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
@@ -206,11 +146,8 @@
   </div>
 
   <script>
-    let token = localStorage.getItem("token") || "";
-    let userEmail = localStorage.getItem("userEmail") || "";
-    let isAdmin = localStorage.getItem("isAdmin") === "1";
     let dictionary = {};
-
+    let adminToken = localStorage.getItem("adminToken") || "";
     let socket = null, audioContext = null, processor = null, stream = null, running = false, sentenceId = 0;
 
     const tabUse = document.getElementById("tabUse");
@@ -221,221 +158,86 @@
     tabUse.addEventListener("click", () => { tabUse.classList.add("active"); tabManage.classList.remove("active"); viewUse.classList.add("active"); viewManage.classList.remove("active"); });
     tabManage.addEventListener("click", () => { tabManage.classList.add("active"); tabUse.classList.remove("active"); viewManage.classList.add("active"); viewUse.classList.remove("active"); refreshDictionary(); });
 
-    function refreshAuth() {
-      const userBox = document.getElementById("userBox");
-      const userLabel = document.getElementById("userLabel");
-      const logoutBtn = document.getElementById("logoutBtn");
-      const authBox = document.getElementById("authBox");
-      const manageBox = document.getElementById("manageBox");
-      const globalBox = document.getElementById("globalBox");
-      if (token) {
-        userLabel.textContent = (userEmail || "Autenticato") + (isAdmin ? " (admin)" : "");
-        logoutBtn.classList.remove("hidden");
-        authBox.classList.add("hidden");
-        manageBox.classList.remove("hidden");
-        if (isAdmin) { globalBox.classList.remove("hidden"); refreshGlobal(); }
-        else { globalBox.classList.add("hidden"); }
-      } else {
-        userLabel.textContent = "Non autenticato";
-        logoutBtn.classList.add("hidden");
-        authBox.classList.remove("hidden");
-        manageBox.classList.add("hidden");
-        globalBox.classList.add("hidden");
-      }
-    }
-
-    async function refreshGlobal() {
-      try {
-        const res = await fetch("/api/global/signs");
-        const data = await res.json();
-        renderGlobalRows(data.segni || {});
-      } catch (e) {}
-    }
-
-    function renderGlobalRows(globalSegni) {
-      const rows = document.getElementById("grows");
-      rows.innerHTML = "";
-      const keys = Object.keys(globalSegni).sort();
-      if (!keys.length) { rows.innerHTML = '<tr><td colspan="3" class="empty">Nessun segno globale.</td></tr>'; return; }
-      for (const gloss of keys) {
-        const s = globalSegni[gloss];
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td><b>${gloss}</b></td><td class="gcell"></td><td><button class="del gdel" data-gloss="${gloss}">Elimina</button></td>`;
-        rows.appendChild(tr);
-        try {
-          const cell = tr.querySelector(".gcell");
-          if (s.video) cell.innerHTML = `<video src="${s.video}" muted loop autoplay playsinline style="width:60px;height:60px;object-fit:cover;border-radius:6px"></video>`;
-          else if (s.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) cell.innerHTML = ssw.ttf.fsw.signSvg(s.fsw);
-          else if (s.image) cell.innerHTML = `<img src="${s.image}" alt="${gloss}" style="width:60px;height:60px;object-fit:contain;border-radius:6px">`;
-          else cell.textContent = "—";
-        } catch (e) {}
-      }
-      document.querySelectorAll(".gdel").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          if (!confirm("Eliminare il segno globale " + btn.dataset.gloss + "?")) return;
-          try {
-            const res = await fetch("/api/global/signs/" + encodeURIComponent(btn.dataset.gloss), { method: "DELETE", headers: authHeaders() });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "errore");
-            renderGlobalRows(data.segni || {});
-          } catch (e) { alert("Errore: " + e.message); }
-        });
-      });
-    }
-
     function authHeaders() {
-      const h = { "Content-Type": "application/json" };
-      if (token) h["Authorization"] = "Bearer " + token;
+      const h = {};
+      if (adminToken) h["X-Admin-Token"] = adminToken;
       return h;
     }
 
     async function refreshDictionary() {
       try {
-        const res = await fetch("/api/dictionary", { headers: authHeaders() });
+        const res = await fetch("/api/dictionary");
         const data = await res.json();
         if (data.segni) { dictionary = data.segni; }
         renderRows();
       } catch (e) {}
     }
 
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-      const msg = document.getElementById("authMsg");
-      msg.textContent = ""; msg.className = "auth-msg";
+    async function checkAdmin() {
       try {
-        const res = await fetch("/api/auth/login", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
+        const res = await fetch("/api/admin_status");
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "errore");
-        token = data.access_token; userEmail = data.user;
-        localStorage.setItem("token", token);
-        localStorage.setItem("userEmail", userEmail);
-        await setAdminFlag();
-        refreshAuth(); await refreshDictionary();
-        msg.textContent = "Accesso effettuato"; msg.className = "auth-msg ok";
-      } catch (e) { msg.textContent = "Errore: " + e.message; msg.className = "auth-msg err"; }
-    });
-
-    async function setAdminFlag() {
-      try {
-        const res = await fetch("/api/auth/me", { headers: authHeaders() });
-        const data = await res.json();
-        isAdmin = !!data.is_admin;
-        localStorage.setItem("isAdmin", isAdmin ? "1" : "0");
-      } catch (e) { isAdmin = false; }
+        if (!data.auth_required) { unlockManage(); }
+        else if (adminToken) {
+          const r = await fetch("/api/dictionary", { headers: authHeaders() });
+          if (r.ok) unlockManage();
+        }
+      } catch (e) {}
     }
 
-    document.getElementById("signupBtn").addEventListener("click", async () => {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
+    function unlockManage() {
+      document.getElementById("authBox").classList.add("hidden");
+      document.getElementById("manageBox").classList.remove("hidden");
+    }
+
+    document.getElementById("unlockBtn").addEventListener("click", async () => {
+      const pw = document.getElementById("adminPassword").value;
       const msg = document.getElementById("authMsg");
       msg.textContent = ""; msg.className = "auth-msg";
-      if (password.length < 6) { msg.textContent = "Password troppo corta (min 6)"; msg.className = "auth-msg err"; return; }
+      adminToken = pw;
       try {
-        const res = await fetch("/api/auth/signup", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "errore");
-        if (data.access_token) {
-          token = data.access_token; userEmail = data.user;
-          localStorage.setItem("token", token);
-          localStorage.setItem("userEmail", userEmail);
-          await setAdminFlag();
-          refreshAuth(); await refreshDictionary();
-          msg.textContent = "Registrazione completata"; msg.className = "auth-msg ok";
+        const res = await fetch("/api/dictionary", { headers: authHeaders() });
+        if (res.ok) {
+          localStorage.setItem("adminToken", pw);
+          unlockManage();
+          await refreshDictionary();
         } else {
-          msg.textContent = "Registrazione inviata (controlla email se richiesto)"; msg.className = "auth-msg ok";
+          adminToken = "";
+          msg.textContent = "Password errata"; msg.className = "auth-msg err";
         }
       } catch (e) { msg.textContent = "Errore: " + e.message; msg.className = "auth-msg err"; }
-    });
-
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      token = ""; userEmail = ""; isAdmin = false;
-      localStorage.removeItem("token"); localStorage.removeItem("userEmail"); localStorage.removeItem("isAdmin");
-      dictionary = {};
-      refreshAuth(); refreshDictionary();
     });
 
     function renderRows() {
       const rows = document.getElementById("rows");
       rows.innerHTML = "";
       const keys = Object.keys(dictionary).sort();
-      if (!keys.length) { rows.innerHTML = '<tr><td colspan="4" class="empty">Nessun segno.</td></tr>'; return; }
+      if (!keys.length) { rows.innerHTML = '<tr><td colspan="3" class="empty">Nessun segno.</td></tr>'; return; }
       for (const gloss of keys) {
         const s = dictionary[gloss];
-        const isPers = !!s.user_id;
-        const canDelete = isPers || isAdmin;
         const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><b>${gloss}</b></td>
-          <td class="sign-cell"></td>
-          <td>${isPers ? '<span class="badge pers">personale</span>' : '<span class="badge ok">globale</span>'}</td>
-          <td>${canDelete ? `<button class="del" data-gloss="${gloss}" data-type="${isPers ? 'pers' : 'glob'}">Elimina</button>` : ''}</td>`;
+        tr.innerHTML = `<td><b>${gloss}</b></td><td class="sign-cell"></td><td><button class="del" data-gloss="${gloss}">Elimina</button></td>`;
         rows.appendChild(tr);
         try {
           const cell = tr.querySelector(".sign-cell");
-          if (s.video) {
-            cell.innerHTML = `<video src="${s.video}" muted loop autoplay playsinline style="width:60px;height:60px;object-fit:cover;border-radius:6px"></video>`;
-          } else if (s.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) {
-            cell.innerHTML = ssw.ttf.fsw.signSvg(s.fsw);
-          } else if (s.image) {
-            cell.innerHTML = `<img src="${s.image}" alt="${gloss}" style="width:60px;height:60px;object-fit:contain;border-radius:6px">`;
-          } else { cell.textContent = "—"; }
+          if (s.video) cell.innerHTML = `<video src="${s.video}" muted loop autoplay playsinline style="width:60px;height:60px;object-fit:cover;border-radius:6px"></video>`;
+          else if (s.image) cell.innerHTML = `<img src="${s.image}" alt="${gloss}" style="width:60px;height:60px;object-fit:contain;border-radius:6px">`;
+          else if (s.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) cell.innerHTML = ssw.ttf.fsw.signSvg(s.fsw);
+          else cell.textContent = "—";
         } catch (e) {}
       }
       document.querySelectorAll(".del").forEach(btn => {
         btn.addEventListener("click", async () => {
           if (!confirm("Eliminare il segno " + btn.dataset.gloss + "?")) return;
-          const url = btn.dataset.type === "glob"
-            ? "/api/global/signs/" + encodeURIComponent(btn.dataset.gloss)
-            : "/api/dictionary/" + encodeURIComponent(btn.dataset.gloss);
           try {
-            const res = await fetch(url, { method: "DELETE", headers: authHeaders() });
+            const res = await fetch("/api/dictionary/" + encodeURIComponent(btn.dataset.gloss), { method: "DELETE", headers: authHeaders() });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "errore");
             dictionary = data.segni || {}; renderRows();
-            if (btn.dataset.type === "glob") refreshGlobal();
           } catch (e) { alert("Errore: " + e.message); }
         });
       });
     }
-
-    const fswInput = document.getElementById("fsw");
-    const glossInput = document.getElementById("gloss");
-    const saveBtn = document.getElementById("save");
-    const preview = document.getElementById("preview");
-
-    fswInput.addEventListener("input", () => {
-      saveBtn.disabled = !glossInput.value.trim() || !fswInput.value.trim();
-      const v = fswInput.value.trim();
-      if (!v) { preview.textContent = "—"; return; }
-      try { if (typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) preview.innerHTML = ssw.ttf.fsw.signSvg(v); }
-      catch (e) { preview.textContent = "FSW non valido"; }
-    });
-    glossInput.addEventListener("input", () => { saveBtn.disabled = !glossInput.value.trim() || !fswInput.value.trim(); });
-
-    saveBtn.addEventListener("click", async () => {
-      const gloss = glossInput.value.trim().toUpperCase();
-      const fsw = fswInput.value.trim();
-      const msg = document.getElementById("msg");
-      msg.textContent = ""; msg.className = "msg";
-      try {
-        const res = await fetch("/api/dictionary", {
-          method: "POST", headers: authHeaders(),
-          body: JSON.stringify({ gloss, fsw, validato: false, nota: "" }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "errore");
-        dictionary = data.segni || {}; renderRows();
-        glossInput.value = ""; fswInput.value = ""; preview.textContent = "—"; saveBtn.disabled = true;
-        msg.textContent = "Segno salvato"; msg.className = "msg ok";
-      } catch (e) { msg.textContent = "Errore: " + e.message; msg.className = "msg err"; }
-    });
 
     document.getElementById("upload").addEventListener("click", async () => {
       const gloss = document.getElementById("vgloss").value.trim().toUpperCase();
@@ -447,34 +249,12 @@
       fd.append("gloss", gloss);
       fd.append("video", fileInput.files[0]);
       try {
-        const h = {}; if (token) h["Authorization"] = "Bearer " + token;
-        const res = await fetch("/api/upload_video", { method: "POST", headers: h, body: fd });
+        const res = await fetch("/api/upload_video", { method: "POST", headers: authHeaders(), body: fd });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "errore");
         dictionary = data.segni || {}; renderRows();
         document.getElementById("vgloss").value = ""; fileInput.value = "";
         vmsg.textContent = "Video caricato per " + gloss; vmsg.className = "msg ok";
-      } catch (e) { vmsg.textContent = "Errore: " + e.message; vmsg.className = "msg err"; }
-    });
-
-    document.getElementById("gupload").addEventListener("click", async () => {
-      const gloss = document.getElementById("gvgloss").value.trim().toUpperCase();
-      const fileInput = document.getElementById("gvfile");
-      const vmsg = document.getElementById("gvmsg");
-      vmsg.textContent = ""; vmsg.className = "msg";
-      if (!gloss || !fileInput.files.length) { vmsg.textContent = "Inserisci glossa e file"; vmsg.className = "msg err"; return; }
-      const fd = new FormData();
-      fd.append("gloss", gloss);
-      fd.append("video", fileInput.files[0]);
-      try {
-        const h = {}; if (token) h["Authorization"] = "Bearer " + token;
-        const res = await fetch("/api/global/upload_video", { method: "POST", headers: h, body: fd });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "errore");
-        renderGlobalRows(data.segni || {});
-        document.getElementById("gvgloss").value = ""; fileInput.value = "";
-        vmsg.textContent = "Video globale caricato per " + gloss; vmsg.className = "msg ok";
-        await refreshDictionary();
       } catch (e) { vmsg.textContent = "Errore: " + e.message; vmsg.className = "msg err"; }
     });
 
@@ -488,34 +268,12 @@
       fd.append("gloss", gloss);
       fd.append("image", fileInput.files[0]);
       try {
-        const h = {}; if (token) h["Authorization"] = "Bearer " + token;
-        const res = await fetch("/api/upload_image", { method: "POST", headers: h, body: fd });
+        const res = await fetch("/api/upload_image", { method: "POST", headers: authHeaders(), body: fd });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "errore");
         dictionary = data.segni || {}; renderRows();
         document.getElementById("igloss").value = ""; fileInput.value = "";
         imsg.textContent = "Immagine caricata per " + gloss; imsg.className = "msg ok";
-      } catch (e) { imsg.textContent = "Errore: " + e.message; imsg.className = "msg err"; }
-    });
-
-    document.getElementById("giupload").addEventListener("click", async () => {
-      const gloss = document.getElementById("gigloss").value.trim().toUpperCase();
-      const fileInput = document.getElementById("gifile");
-      const imsg = document.getElementById("gimsg");
-      imsg.textContent = ""; imsg.className = "msg";
-      if (!gloss || !fileInput.files.length) { imsg.textContent = "Inserisci glossa e file"; imsg.className = "msg err"; return; }
-      const fd = new FormData();
-      fd.append("gloss", gloss);
-      fd.append("image", fileInput.files[0]);
-      try {
-        const h = {}; if (token) h["Authorization"] = "Bearer " + token;
-        const res = await fetch("/api/global/upload_image", { method: "POST", headers: h, body: fd });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "errore");
-        renderGlobalRows(data.segni || {});
-        document.getElementById("gigloss").value = ""; fileInput.value = "";
-        imsg.textContent = "Immagine globale caricata per " + gloss; imsg.className = "msg ok";
-        await refreshDictionary();
       } catch (e) { imsg.textContent = "Errore: " + e.message; imsg.className = "msg err"; }
     });
 
@@ -638,33 +396,20 @@
       const content = document.getElementById("lbContent");
       const label = document.getElementById("lbLabel");
       content.innerHTML = "";
-      if (type === "image") {
-        const img = document.createElement("img");
-        img.src = src; img.alt = gloss;
-        content.appendChild(img);
-      } else if (type === "video") {
-        const video = document.createElement("video");
-        video.src = src; video.controls = true; video.autoplay = true; video.playsInline = true;
-        content.appendChild(video);
-      } else if (type === "fsw") {
-        try {
-          if (typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) content.innerHTML = ssw.ttf.fsw.signSvg(src);
-        } catch (e) {}
-      }
+      if (type === "image") { const img = document.createElement("img"); img.src = src; img.alt = gloss; content.appendChild(img); }
+      else if (type === "video") { const video = document.createElement("video"); video.src = src; video.controls = true; video.autoplay = true; video.playsInline = true; content.appendChild(video); }
+      else if (type === "fsw") { try { if (typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) content.innerHTML = ssw.ttf.fsw.signSvg(src); } catch (e) {} }
       label.textContent = gloss || "";
       lb.classList.remove("hidden");
     }
 
     function closeLightbox() {
-      const lb = document.getElementById("lightbox");
       document.getElementById("lbContent").innerHTML = "";
-      lb.classList.add("hidden");
+      document.getElementById("lightbox").classList.add("hidden");
     }
 
     document.getElementById("lbClose").addEventListener("click", closeLightbox);
-    document.getElementById("lightbox").addEventListener("click", (e) => {
-      if (e.target.id === "lightbox") closeLightbox();
-    });
+    document.getElementById("lightbox").addEventListener("click", (e) => { if (e.target.id === "lightbox") closeLightbox(); });
 
     function floatTo16BitPCM(float32) {
       const int16 = new Int16Array(float32.length);
@@ -683,8 +428,8 @@
     }
 
     // init
-    refreshAuth();
     refreshDictionary();
+    checkAdmin();
 
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => navigator.serviceWorker.register("/static/sw.js"));

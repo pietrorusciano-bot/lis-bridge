@@ -1,14 +1,13 @@
 import os
-import time
 
 import cloudinary
 import requests
 from cloudinary import uploader
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, Response, jsonify, render_template, request
 from flask_cors import CORS
 
 import envloader
-import store
+import json_store
 from lis_translator import LisTranslator
 
 envloader.load_env()
@@ -19,7 +18,7 @@ app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024
 
 ASSEMBLYAI_TOKEN_URL = "https://streaming.assemblyai.com/v3/token"
 
-ADMIN_EMAIL = (os.environ.get("ADMIN_EMAIL", "") or "").strip().lower()
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
 
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME", ""),
@@ -35,11 +34,9 @@ def index():
 
 @app.route("/.well-known/assetlinks.json")
 def assetlinks():
-    import os as _os
-    path = _os.path.join(_os.path.dirname(__file__), ".well-known", "assetlinks.json")
+    path = os.path.join(os.path.dirname(__file__), ".well-known", "assetlinks.json")
     with open(path, encoding="utf-8") as f:
         content = f.read()
-    from flask import Response
     return Response(content, mimetype="application/json")
 
 
@@ -78,108 +75,21 @@ def translate():
     return jsonify(result)
 
 
-def _current_user():
-    auth = request.headers.get("Authorization", "")
-    if not auth.startswith("Bearer "):
-        return None
-    token = auth[len("Bearer "):]
-    try:
-        r = store.client().auth.get_user(token)
-        return r.user.id
-    except Exception:
-        return None
+def _check_admin():
+    if not ADMIN_PASSWORD:
+        return True
+    token = request.headers.get("X-Admin-Token", "")
+    return token == ADMIN_PASSWORD
 
 
-def _current_email():
-    auth = request.headers.get("Authorization", "")
-    if not auth.startswith("Bearer "):
-        return None
-    token = auth[len("Bearer "):]
-    try:
-        r = store.client().auth.get_user(token)
-        return (r.user.email or "").strip().lower()
-    except Exception:
-        return None
-
-
-def _is_admin():
-    email = _current_email()
-    return bool(ADMIN_EMAIL and email == ADMIN_EMAIL)
-
-
-@app.route("/api/auth/signup", methods=["POST"])
-def signup():
-    data = request.get_json(silent=True) or {}
-    email = data.get("email", "").strip()
-    password = data.get("password", "")
-    if not email or not password:
-        return jsonify({"error": "email e password richieste"}), 400
-    try:
-        r = store.client().auth.sign_up({"email": email, "password": password})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-    return jsonify({
-        "access_token": r.session.access_token if r.session else None,
-        "user_id": r.user.id if r.user else None,
-        "user": r.user.email if r.user else email,
-    })
-
-
-@app.route("/api/auth/login", methods=["POST"])
-def login():
-    data = request.get_json(silent=True) or {}
-    email = data.get("email", "").strip()
-    password = data.get("password", "")
-    if not email or not password:
-        return jsonify({"error": "email e password richieste"}), 400
-    try:
-        r = store.client().auth.sign_in_with_password({"email": email, "password": password})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 401
-    return jsonify({
-        "access_token": r.session.access_token,
-        "user_id": r.user.id,
-        "user": r.user.email,
-    })
-
-
-@app.route("/api/auth/me")
-def me():
-    user_id = _current_user()
-    if not user_id:
-        return jsonify({"error": "Non autenticato"}), 401
-    return jsonify({
-        "user_id": user_id,
-        "email": _current_email(),
-        "is_admin": _is_admin(),
-    })
+@app.route("/api/admin_status")
+def admin_status():
+    return jsonify({"auth_required": bool(ADMIN_PASSWORD)})
 
 
 @app.route("/api/dictionary", methods=["GET"])
 def get_dictionary():
-    user_id = _current_user()
-    return jsonify({"segni": store.get_signs(user_id)})
-
-
-@app.route("/api/dictionary", methods=["POST"])
-def upsert_dictionary():
-    user_id = _current_user()
-    if not user_id:
-        return jsonify({"error": "Non autenticato"}), 401
-    data = request.get_json(silent=True) or {}
-    try:
-        segni = store.upsert_sign(
-            user_id,
-            data.get("gloss", ""),
-            data.get("fsw", ""),
-            data.get("validato", False),
-            data.get("nota", ""),
-            data.get("video", ""),
-            personal=True,
-        )
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
-    return jsonify({"segni": segni})
+    return jsonify({"segni": json_store.get_signs()})
 
 
 ALLOWED_VIDEO_EXT = {".mp4", ".webm", ".mov"}
@@ -188,9 +98,8 @@ ALLOWED_IMAGE_EXT = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"}
 
 @app.route("/api/upload_video", methods=["POST"])
 def upload_video():
-    user_id = _current_user()
-    if not user_id:
-        return jsonify({"error": "Non autenticato"}), 401
+    if not _check_admin():
+        return jsonify({"error": "Non autorizzato"}), 401
     gloss = request.form.get("gloss", "").strip().upper()
     file = request.files.get("video")
     if not gloss or not file:
@@ -200,99 +109,6 @@ def upload_video():
     if ext not in ALLOWED_VIDEO_EXT:
         return jsonify({"error": "Formato non supportato (usa mp4, webm o mov)"}), 400
 
-    result = uploader.upload(
-        file,
-        resource_type="video",
-        public_id=f"lis_{gloss}_{user_id}",
-        overwrite=True,
-        folder="lis_bridge",
-    )
-    video_url = result.get("secure_url", "")
-
-    store.upsert_sign(user_id, gloss, "", False, "", video_url, "", personal=True)
-    return jsonify({"video_url": video_url, "segni": store.get_signs(user_id)})
-
-
-@app.route("/api/upload_image", methods=["POST"])
-def upload_image():
-    user_id = _current_user()
-    if not user_id:
-        return jsonify({"error": "Non autenticato"}), 401
-    gloss = request.form.get("gloss", "").strip().upper()
-    file = request.files.get("image")
-    if not gloss or not file:
-        return jsonify({"error": "glossa o file mancante"}), 400
-
-    ext = os.path.splitext(file.filename)[1].lower()
-    if ext not in ALLOWED_IMAGE_EXT:
-        return jsonify({"error": "Formato non supportato (usa png, jpg, gif, webp)"}), 400
-
-    result = uploader.upload(
-        file,
-        resource_type="image",
-        public_id=f"lis_img_{gloss}_{user_id}",
-        overwrite=True,
-        folder="lis_bridge",
-    )
-    image_url = result.get("secure_url", "")
-
-    store.upsert_sign(user_id, gloss, "", False, "", "", image_url, personal=True)
-    return jsonify({"image_url": image_url, "segni": store.get_signs(user_id)})
-
-
-@app.route("/api/dictionary/<gloss>", methods=["DELETE"])
-def delete_dictionary(gloss):
-    user_id = _current_user()
-    if not user_id:
-        return jsonify({"error": "Non autenticato"}), 401
-    segni = store.delete_sign(user_id, gloss, personal=True)
-    return jsonify({"segni": segni})
-
-
-@app.route("/api/global/signs", methods=["GET"])
-def get_global_signs():
-    return jsonify({"segni": store.get_global_signs()})
-
-
-@app.route("/api/global/signs", methods=["POST"])
-def upsert_global_sign():
-    if not _is_admin():
-        return jsonify({"error": "Solo l'amministratore può gestire il catalogo globale"}), 403
-    data = request.get_json(silent=True) or {}
-    try:
-        store.upsert_sign(
-            None,
-            data.get("gloss", ""),
-            data.get("fsw", ""),
-            data.get("validato", False),
-            data.get("nota", ""),
-            data.get("video", ""),
-            personal=False,
-        )
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
-    return jsonify({"segni": store.get_global_signs()})
-
-
-@app.route("/api/global/signs/<gloss>", methods=["DELETE"])
-def delete_global_sign(gloss):
-    if not _is_admin():
-        return jsonify({"error": "Solo l'amministratore può gestire il catalogo globale"}), 403
-    store.delete_sign(None, gloss, personal=False)
-    return jsonify({"segni": store.get_global_signs()})
-
-
-@app.route("/api/global/upload_video", methods=["POST"])
-def upload_global_video():
-    if not _is_admin():
-        return jsonify({"error": "Solo l'amministratore può gestire il catalogo globale"}), 403
-    gloss = request.form.get("gloss", "").strip().upper()
-    file = request.files.get("video")
-    if not gloss or not file:
-        return jsonify({"error": "glossa o file mancante"}), 400
-    ext = os.path.splitext(file.filename)[1].lower()
-    if ext not in ALLOWED_VIDEO_EXT:
-        return jsonify({"error": "Formato non supportato (usa mp4, webm o mov)"}), 400
     result = uploader.upload(
         file,
         resource_type="video",
@@ -301,21 +117,24 @@ def upload_global_video():
         folder="lis_bridge",
     )
     video_url = result.get("secure_url", "")
-    store.upsert_sign(None, gloss, "", False, "", video_url, "", personal=False)
-    return jsonify({"video_url": video_url, "segni": store.get_global_signs()})
+
+    json_store.upsert(gloss, video=video_url)
+    return jsonify({"video_url": video_url, "segni": json_store.get_signs()})
 
 
-@app.route("/api/global/upload_image", methods=["POST"])
-def upload_global_image():
-    if not _is_admin():
-        return jsonify({"error": "Solo l'amministratore può gestire il catalogo globale"}), 403
+@app.route("/api/upload_image", methods=["POST"])
+def upload_image():
+    if not _check_admin():
+        return jsonify({"error": "Non autorizzato"}), 401
     gloss = request.form.get("gloss", "").strip().upper()
     file = request.files.get("image")
     if not gloss or not file:
         return jsonify({"error": "glossa o file mancante"}), 400
+
     ext = os.path.splitext(file.filename)[1].lower()
     if ext not in ALLOWED_IMAGE_EXT:
         return jsonify({"error": "Formato non supportato (usa png, jpg, gif, webp)"}), 400
+
     result = uploader.upload(
         file,
         resource_type="image",
@@ -324,8 +143,17 @@ def upload_global_image():
         folder="lis_bridge",
     )
     image_url = result.get("secure_url", "")
-    store.upsert_sign(None, gloss, "", False, "", "", image_url, personal=False)
-    return jsonify({"image_url": image_url, "segni": store.get_global_signs()})
+
+    json_store.upsert(gloss, image=image_url)
+    return jsonify({"image_url": image_url, "segni": json_store.get_signs()})
+
+
+@app.route("/api/dictionary/<gloss>", methods=["DELETE"])
+def delete_dictionary(gloss):
+    if not _check_admin():
+        return jsonify({"error": "Non autorizzato"}), 401
+    segni = json_store.delete(gloss)
+    return jsonify({"segni": segni})
 
 
 if __name__ == "__main__":
