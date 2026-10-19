@@ -3,4 +3,5 @@ requests>=2.31
 gunicorn>=21.2
 cloudinary>=1.40
 supabase>=2.31
+flask-cors>=4.0
 

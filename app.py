@@ -5,6 +5,7 @@ import cloudinary
 import requests
 from cloudinary import uploader
 from flask import Flask, jsonify, render_template, request
+from flask_cors import CORS
 
 import envloader
 import store
@@ -13,6 +14,7 @@ from lis_translator import LisTranslator
 envloader.load_env()
 
 app = Flask(__name__)
+CORS(app)
 app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024
 
 ASSEMBLYAI_TOKEN_URL = "https://streaming.assemblyai.com/v3/token"
