@@ -740,7 +740,7 @@
         const row = document.createElement("div");
         row.className = "catalog-row";
         row.innerHTML = `
-          <div class="gloss" title="${gloss}">${gloss}</div>
+          <div class="gloss" data-full="${gloss}">${gloss}</div>
           <div class="thumb"></div>
           <div class="row-actions">
             <button class="icon-act act-up" data-kind="video" data-gloss="${gloss}" title="Carica video">
@@ -1136,6 +1136,62 @@
       statusSub.textContent = "Tocca il microfono per iniziare";
       if (!live.classList.contains("has-text")) live.textContent = "Parla: qui apparirà la trascrizione in tempo reale.";
     }
+
+    /* ===== TOOLTIP GLOSSARIO ===== */
+    const glossTip = document.getElementById("glossTip");
+
+    function showGlossTip(text, x, y) {
+      if (!text) { hideGlossTip(); return; }
+      glossTip.textContent = text;
+      glossTip.classList.remove("hidden", "below");
+      const pad = 8;
+      const rect = glossTip.getBoundingClientRect();
+      let left = x - rect.width / 2;
+      left = Math.max(pad, Math.min(left, window.innerWidth - rect.width - pad));
+      let top = y - rect.height - 44;
+      let below = false;
+      if (top < pad) { top = y + 58; below = true; }
+      glossTip.style.left = left + "px";
+      glossTip.style.top = top + "px";
+      if (below) glossTip.classList.add("below");
+    }
+
+    function hideGlossTip() {
+      glossTip.classList.add("hidden");
+    }
+
+    function glossAt(x, y) {
+      const el = document.elementFromPoint(x, y);
+      if (!el || !el.closest) return null;
+      const g = el.closest(".catalog-row .gloss");
+      if (!g) return null;
+      return g.getAttribute("data-full") || g.textContent.trim();
+    }
+
+    document.addEventListener("mousemove", (e) => {
+      const t = glossAt(e.clientX, e.clientY);
+      if (t) showGlossTip(t, e.clientX, e.clientY);
+      else hideGlossTip();
+    });
+    document.addEventListener("mouseleave", hideGlossTip);
+
+    document.addEventListener("touchstart", (e) => {
+      if (!e.touches.length) return;
+      const p = e.touches[0];
+      const t = glossAt(p.clientX, p.clientY);
+      if (t) showGlossTip(t, p.clientX, p.clientY);
+    }, { passive: true });
+
+    document.addEventListener("touchmove", (e) => {
+      if (!e.touches.length) return;
+      const p = e.touches[0];
+      const t = glossAt(p.clientX, p.clientY);
+      if (t) showGlossTip(t, p.clientX, p.clientY);
+      else hideGlossTip();
+    }, { passive: true });
+
+    document.addEventListener("touchend", hideGlossTip);
+    document.addEventListener("touchcancel", hideGlossTip);
 
     // init
     refreshDictionary();
