@@ -16,8 +16,10 @@
     },
     "BUON POMERIGGIO": {
       "fsw": "",
+      "validato": false,
+      "nota": "",
       "video": "",
-      "image": ""
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1789503907/lis_bridge/lis_global_img_BUON%20POMERIGGIO.png"
     },
     "BUON PROSEGUIMENTO": {
       "fsw": "",
