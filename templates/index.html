@@ -111,6 +111,9 @@
       margin: -10px 0 14px;
       min-height: 16px;
       transition: color .2s;
+      cursor: pointer;
+      text-decoration: underline dotted rgba(124,58,237,0.35);
+      text-underline-offset: 3px;
     }
     .dict-status.ok { color: #15803d; }
     .dict-status.warn { color: #b45309; }
@@ -491,7 +494,7 @@
     <!-- =========================== PAGE 1 : ASCOLTO =========================== -->
     <section class="page" id="pageAscolta">
       <div class="profile-pill"><span class="dot"></span> Profilo: <b>Standard</b></div>
-      <div class="dict-status" id="dictStatus">Caricamento dizionario…</div>
+      <div class="dict-status" id="dictStatus" title="Tocca per aggiornare">Caricamento dizionario…</div>
 
       <div class="listen-card" id="listenCard">
         <div class="mascot"><img src="static/logo.png" alt="LIS Bridge"></div>
@@ -703,13 +706,18 @@
       el.className = "dict-status " + (state || "");
     }
 
+    function nowLabel() {
+      try { return new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }); }
+      catch (e) { return ""; }
+    }
+
     async function refreshDictionary() {
       try {
         const res = await fetch("/api/dictionary");
         const data = await res.json();
         if (data.segni) dictionary = data.segni;
         renderRows();
-        setDictStatus("Dizionario: " + Object.keys(dictionary).length + " segni", "ok");
+        setDictStatus("Dizionario: " + Object.keys(dictionary).length + " segni · " + nowLabel(), "ok");
       } catch (e) {
         setDictStatus("Offline: uso la copia locale", "warn");
       }
@@ -1233,6 +1241,11 @@
         else warn.classList.add("hidden");
       } catch (e) {}
     }
+
+    document.getElementById("dictStatus").addEventListener("click", () => {
+      if (typeof syncDictionaryFromGitHub === "function") syncDictionaryFromGitHub();
+      else refreshDictionary();
+    });
 
     // init
     refreshDictionary();

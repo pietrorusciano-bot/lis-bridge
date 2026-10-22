@@ -22,7 +22,7 @@ COMMITTER_EMAIL = (os.environ.get("GITHUB_COMMIT_EMAIL", "") or "lisbridge@users
 _lock = threading.Lock()
 _cache = None
 _cache_time = 0.0
-_CACHE_TTL = 15  # secondi
+_CACHE_TTL = 5  # secondi
 
 _API = "https://api.github.com/repos/{repo}/contents/{path}"
 
