@@ -106,20 +106,19 @@
       margin-bottom: 20px;
     }
     .mascot {
-      width: 96px; height: 96px;
+      width: 124px; height: 124px;
       margin: 0 auto 14px;
       border-radius: 50%;
-      background: radial-gradient(circle at 30% 25%, #c4b5fd, #6d28d9 70%);
+      overflow: hidden;
       display: flex; align-items: center; justify-content: center;
-      font-size: 52px;
-      box-shadow: 0 10px 24px rgba(109,40,217,0.28);
       position: relative;
+      filter: drop-shadow(0 10px 22px rgba(109,40,217,0.25));
     }
-    .mascot::after {
-      content: "";
-      position: absolute; inset: -6px;
+    .mascot img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      display: block;
       border-radius: 50%;
-      border: 3px solid rgba(255,255,255,0.55);
     }
     .status-title {
       font-size: 1.45rem; font-weight: 800; margin: 2px 0 6px;
@@ -426,7 +425,7 @@
       <div class="profile-pill"><span class="dot"></span> Profilo: <b>Standard</b></div>
 
       <div class="listen-card" id="listenCard">
-        <div class="mascot">🤖</div>
+        <div class="mascot"><img src="static/logo.png" alt="LIS Bridge"></div>
         <div class="status-title"><span class="sdot"></span><span id="statusTitle">Pronto ad ascoltare</span></div>
         <div class="status-sub" id="statusSub">Tocca il microfono per iniziare</div>
         <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
