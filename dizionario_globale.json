@@ -126,8 +126,10 @@
     },
     "GRAZIE": {
       "fsw": "",
+      "validato": false,
+      "nota": "",
       "video": "",
-      "image": ""
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1789504042/lis_bridge/lis_global_img_GRAZIE.png"
     },
     "IMPORTANTE": {
       "fsw": "",
