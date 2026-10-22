@@ -173,15 +173,15 @@
     },
     "PREGO": {
       "fsw": "",
-      "validato": false,
-      "nota": "",
       "video": "",
-      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1789504098/lis_bridge/lis_global_img_PREGO.png"
+      "image": ""
     },
     "PRIMO": {
       "fsw": "",
+      "validato": false,
+      "nota": "",
       "video": "",
-      "image": ""
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1789504107/lis_bridge/lis_global_img_PRIMO.png"
     },
     "RAGGIUNGERE": {
       "fsw": "",
