@@ -277,19 +277,19 @@
     .catalog { margin-top: 6px; }
     .catalog-head {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 48px 72px 72px;
-      gap: 6px;
-      font-size: .72rem; color: #9ca3af; font-weight: 800;
+      grid-template-columns: minmax(0, 1fr) 40px 36px 36px 36px 36px;
+      gap: 4px;
+      font-size: .7rem; color: #9ca3af; font-weight: 800;
       text-transform: uppercase; letter-spacing: .05em;
       padding: 0 0 8px; border-bottom: 1px solid #f2eefb;
     }
-    .catalog-head .right { grid-column: 3 / span 2; text-align: right; }
+    .catalog-head .right { grid-column: 3 / span 4; text-align: right; }
     .catalog-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 48px 72px 72px;
+      grid-template-columns: minmax(0, 1fr) 40px 36px 36px 36px 36px;
       align-items: center;
-      gap: 6px;
-      padding: 10px 0;
+      gap: 4px;
+      padding: 9px 0;
       border-bottom: 1px solid #f2eefb;
     }
     .catalog-row:last-child { border-bottom: none; }
@@ -298,24 +298,23 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .catalog-row .thumb {
-      width: 48px; height: 48px; border-radius: 12px; overflow: hidden;
+      width: 40px; height: 40px; border-radius: 10px; overflow: hidden;
       background: var(--lavender); display: flex; align-items: center; justify-content: center;
       flex: 0 0 auto;
     }
     .catalog-row .thumb video, .catalog-row .thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .catalog-row .thumb svg { width: 34px; height: 34px; }
-    .thumb-empty { color: var(--muted-2); font-size: .68rem; }
-    .btn-edit, .btn-del {
-      width: 72px; height: 36px; padding: 0;
+    .catalog-row .thumb svg { width: 30px; height: 30px; }
+    .thumb-empty { color: var(--muted-2); font-size: .62rem; }
+    .icon-act {
+      width: 36px; height: 36px; padding: 0;
       display: flex; align-items: center; justify-content: center;
-      border: none; border-radius: 10px;
-      font-weight: 700; font-size: .76rem; cursor: pointer;
-      white-space: nowrap;
+      border: none; border-radius: 10px; cursor: pointer;
     }
-    .btn-edit { background: #ede9fe; color: #5b21b6; }
-    .btn-edit:active { background: #ddd0ff; }
-    .btn-del { background: #fee2e2; color: #b91c1c; }
-    .btn-del:active { background: #fecaca; }
+    .icon-act svg { width: 18px; height: 18px; }
+    .icon-act:active { transform: scale(.94); }
+    .act-up { background: #ede9fe; color: #6d28d9; }
+    .act-edit { background: #e0f2fe; color: #0369a1; }
+    .act-del { background: #fee2e2; color: #b91c1c; }
     .row-actions { display: contents; }
 
     .search-wrap { position: relative; margin-bottom: 14px; }
@@ -551,6 +550,9 @@
     <div class="lb-label" id="lbLabel"></div>
   </div>
 
+  <input type="file" id="quickVideo" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" class="hidden">
+  <input type="file" id="quickImage" accept="image/png,image/jpeg,image/gif,image/webp,.png,.jpg,.jpeg,.gif,.webp" class="hidden">
+
   <div id="editModal" class="edit-modal hidden">
     <div class="edit-sheet">
       <div class="card-head">
@@ -684,7 +686,38 @@
         const s = dictionary[gloss];
         const row = document.createElement("div");
         row.className = "catalog-row";
-        row.innerHTML = `<div class="gloss">${gloss}</div><div class="thumb"></div><div class="row-actions"><button class="btn-edit" data-gloss="${gloss}">Modifica</button><button class="btn-del" data-gloss="${gloss}">Elimina</button></div>`;
+        row.innerHTML = `
+          <div class="gloss" title="${gloss}">${gloss}</div>
+          <div class="thumb"></div>
+          <div class="row-actions">
+            <button class="icon-act act-up" data-kind="video" data-gloss="${gloss}" title="Carica video">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="6" width="14" height="12" rx="2"></rect>
+                <polygon points="22 8 16 12 22 16 22 8"></polygon>
+              </svg>
+            </button>
+            <button class="icon-act act-up" data-kind="image" data-gloss="${gloss}" title="Carica immagine">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+            </button>
+            <button class="icon-act act-edit" data-gloss="${gloss}" title="Modifica">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"></path>
+              </svg>
+            </button>
+            <button class="icon-act act-del" data-gloss="${gloss}" title="Elimina">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                <path d="M10 11v6M14 11v6"></path>
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+              </svg>
+            </button>
+          </div>`;
         rows.appendChild(row);
         try {
           const thumb = row.querySelector(".thumb");
@@ -694,10 +727,17 @@
           else thumb.innerHTML = '<span class="thumb-empty">—</span>';
         } catch (e) {}
       }
-      rows.querySelectorAll(".btn-edit").forEach(btn => {
+      rows.querySelectorAll(".act-edit").forEach(btn => {
         btn.addEventListener("click", () => openEdit(btn.dataset.gloss));
       });
-      rows.querySelectorAll(".btn-del").forEach(btn => {
+      rows.querySelectorAll(".act-up").forEach(btn => {
+        btn.addEventListener("click", () => {
+          quickGloss = btn.dataset.gloss;
+          if (btn.dataset.kind === "video") { quickVideo.value = ""; quickVideo.click(); }
+          else { quickImage.value = ""; quickImage.click(); }
+        });
+      });
+      rows.querySelectorAll(".act-del").forEach(btn => {
         btn.addEventListener("click", async () => {
           if (!confirm("Eliminare il segno " + btn.dataset.gloss + "?")) return;
           try {
@@ -709,6 +749,36 @@
         });
       });
     }
+
+    let quickGloss = "";
+    const quickVideo = document.getElementById("quickVideo");
+    const quickImage = document.getElementById("quickImage");
+
+    quickVideo.addEventListener("change", async () => {
+      if (!quickVideo.files.length || !quickGloss) return;
+      const fd = new FormData();
+      fd.append("gloss", quickGloss);
+      fd.append("video", quickVideo.files[0]);
+      try {
+        const res = await fetch("/api/upload_video", { method: "POST", headers: authHeaders(), body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "errore");
+        dictionary = data.segni || {}; renderRows();
+      } catch (e) { alert("Errore video: " + e.message); }
+    });
+
+    quickImage.addEventListener("change", async () => {
+      if (!quickImage.files.length || !quickGloss) return;
+      const fd = new FormData();
+      fd.append("gloss", quickGloss);
+      fd.append("image", quickImage.files[0]);
+      try {
+        const res = await fetch("/api/upload_image", { method: "POST", headers: authHeaders(), body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "errore");
+        dictionary = data.segni || {}; renderRows();
+      } catch (e) { alert("Errore immagine: " + e.message); }
+    });
 
     let editingGloss = "";
 
