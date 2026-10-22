@@ -98,8 +98,10 @@
     },
     "CURIOSITA'": {
       "fsw": "",
+      "validato": false,
+      "nota": "",
       "video": "",
-      "image": ""
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1789504005/lis_bridge/lis_global_img_CURIOSITA%27.png"
     },
     "DIVERTIRSI": {
       "fsw": "",
