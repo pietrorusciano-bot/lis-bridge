@@ -161,13 +161,6 @@
       "fsw": "",
       "video": "",
       "image": ""
-    },
-    "TESTPERSIST": {
-      "fsw": "",
-      "validato": false,
-      "nota": "verifica persistenza",
-      "video": "",
-      "image": ""
     }
   }
 }
