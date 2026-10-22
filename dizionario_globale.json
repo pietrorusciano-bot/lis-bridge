@@ -58,8 +58,10 @@
     },
     "CANALE YOUTUBE": {
       "fsw": "",
+      "validato": false,
+      "nota": "",
       "video": "",
-      "image": ""
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1789503967/lis_bridge/lis_global_img_CANALE%20YOUTUBE.png"
     },
     "CASA": {
       "fsw": "",
