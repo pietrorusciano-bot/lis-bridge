@@ -31,6 +31,18 @@ def _use_github():
     return bool(REPO and TOKEN)
 
 
+def github_enabled():
+    return _use_github()
+
+
+def repo_name():
+    return REPO
+
+
+def branch_name():
+    return BRANCH
+
+
 def _headers():
     return {
         "Authorization": "Bearer " + TOKEN,

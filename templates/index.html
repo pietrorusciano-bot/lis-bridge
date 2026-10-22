@@ -292,6 +292,11 @@
     .msg { margin-top: 10px; font-weight: 700; font-size: .92rem; }
     .msg.ok { color: #15803d; }
     .msg.err { color: #dc2626; }
+    .storage-warn {
+      background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412;
+      border-radius: 14px; padding: 12px 14px; font-size: .88rem;
+      font-weight: 700; margin-bottom: 14px; line-height: 1.35;
+    }
     .hint { color: var(--muted); font-size: .87rem; line-height: 1.4; }
 
     .catalog { margin-top: 6px; }
@@ -517,6 +522,10 @@
     <!-- ====================== PAGE 2 : CONFIGURAZIONE ====================== -->
     <section class="page" id="pageConfig">
       <div class="profile-pill"><span class="dot"></span> <b>Configurazione</b></div>
+
+      <div id="storageWarn" class="storage-warn hidden">
+        Persistenza non attiva: i segni verranno persi al riavvio del server. Configura GITHUB_TOKEN e GITHUB_REPO su Render.
+      </div>
 
       <div id="authBox" class="card">
         <div class="section-title">Accesso amministratore</div>
@@ -1193,9 +1202,20 @@
     document.addEventListener("touchend", hideGlossTip);
     document.addEventListener("touchcancel", hideGlossTip);
 
+    async function checkStorage() {
+      try {
+        const res = await fetch("/api/storage_status");
+        const data = await res.json();
+        const warn = document.getElementById("storageWarn");
+        if (!data.github) warn.classList.remove("hidden");
+        else warn.classList.add("hidden");
+      } catch (e) {}
+    }
+
     // init
     refreshDictionary();
     checkAdmin();
+    checkStorage();
 
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => navigator.serviceWorker.register("/static/sw.js"));

@@ -87,6 +87,15 @@ def admin_status():
     return jsonify({"auth_required": bool(ADMIN_PASSWORD)})
 
 
+@app.route("/api/storage_status")
+def storage_status():
+    return jsonify({
+        "github": json_store.github_enabled(),
+        "repo": json_store.repo_name(),
+        "branch": json_store.branch_name(),
+    })
+
+
 @app.route("/api/dictionary", methods=["GET"])
 def get_dictionary():
     return jsonify({"segni": json_store.get_signs()})
