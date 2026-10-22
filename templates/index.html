@@ -34,19 +34,23 @@
       --orange: #f59e0b;
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { margin: 0; padding: 0; }
+    html, body { margin: 0; padding: 0; height: 100%; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding-bottom: 96px;
-      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
     }
 
     /* ===== TOP BAR ===== */
     .topbar {
       display: flex; align-items: center; justify-content: space-between;
       padding: 18px 20px 10px;
+      flex: 0 0 auto;
     }
     .logo { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; }
     .logo .l1 { color: #111827; }
@@ -62,6 +66,8 @@
     /* ===== PAGES / SWIPE ===== */
     .pages {
       display: flex;
+      flex: 1 1 auto;
+      min-height: 0;
       overflow-x: auto;
       overflow-y: hidden;
       scroll-snap-type: x mandatory;
@@ -75,7 +81,10 @@
       min-width: 100%;
       scroll-snap-align: start;
       scroll-snap-stop: always;
-      padding: 4px 20px 24px;
+      padding: 4px 20px 104px;
+      overflow-y: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
     }
 
     /* ===== PROFILE PILL ===== */
@@ -207,8 +216,20 @@
       margin-bottom: 12px;
       box-shadow: 0 6px 20px rgba(76,29,149,0.06);
     }
+    .turn-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .turn-del {
+      width: 30px; height: 30px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      background: #fee2e2; color: #b91c1c; border: none; cursor: pointer;
+      padding: 0; flex: 0 0 auto;
+    }
+    .turn-del svg { width: 15px; height: 15px; }
+    .turn-del:active { transform: scale(.92); }
     .speaker {
-      font-weight: 800; color: var(--accent); margin-bottom: 8px;
+      font-weight: 800; color: var(--accent); margin-bottom: 0;
       font-size: .92rem; letter-spacing: .02em; text-transform: uppercase;
     }
     .turn .txt { color: #374151; margin-bottom: 6px; line-height: 1.4; }
@@ -293,8 +314,10 @@
     }
     .catalog-row:last-child { border-bottom: none; }
     .catalog-row .gloss {
-      font-weight: 700; font-size: .95rem; line-height: 1.2;
+      font-weight: 500; font-size: .82rem; line-height: 1.2;
+      color: #3b3650;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      min-width: 0;
     }
     .catalog-row .thumb {
       width: 40px; height: 40px; border-radius: 10px; overflow: hidden;
@@ -330,6 +353,35 @@
     }
     .search-wrap input:focus { outline: 2px solid #ddd0ff; }
     .catalog-count { font-size: .8rem; color: var(--muted); margin-bottom: 8px; }
+
+    .gloss-tip {
+      position: fixed;
+      z-index: 2000;
+      max-width: 80vw;
+      background: #2a2140;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: .9rem;
+      font-weight: 600;
+      line-height: 1.25;
+      pointer-events: none;
+      box-shadow: 0 8px 22px rgba(20,10,40,0.35);
+      transform: translateY(0);
+    }
+    .gloss-tip::after {
+      content: "";
+      position: absolute; left: 50%; transform: translateX(-50%);
+      bottom: -6px;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 7px solid #2a2140;
+    }
+    .gloss-tip.below::after {
+      bottom: auto; top: -6px;
+      border-top: none;
+      border-bottom: 7px solid #2a2140;
+    }
 
     /* ===== BOTTOM NAV ===== */
     .bottom-nav {
@@ -551,6 +603,8 @@
 
   <input type="file" id="quickVideo" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" class="hidden">
   <input type="file" id="quickImage" accept="image/png,image/jpeg,image/gif,image/webp,.png,.jpg,.jpeg,.gif,.webp" class="hidden">
+
+  <div id="glossTip" class="gloss-tip hidden"></div>
 
   <div id="editModal" class="edit-modal hidden">
     <div class="edit-sheet">
@@ -934,6 +988,9 @@
         const res = await fetch("/api/stream_token");
         const data = await res.json();
         if (data.error) throw new Error(data.error);
+        turns.innerHTML = "";
+        live.textContent = "";
+        live.classList.remove("has-text");
         stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
         audioContext = new AudioContext();
         const rate = audioContext.sampleRate;
@@ -972,8 +1029,9 @@
       const id = ++sentenceId;
       const div = document.createElement("div");
       div.className = "turn"; div.id = "turn-" + id;
-      div.innerHTML = `<div class="speaker">Speaker ${speaker}</div><div class="txt"></div><div class="semplice"></div><div class="lis pending"></div>`;
+      div.innerHTML = `<div class="turn-head"><div class="speaker">Speaker ${speaker}</div><button class="turn-del" title="Elimina questa trascrizione"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg></button></div><div class="txt"></div><div class="semplice"></div><div class="lis pending"></div>`;
       div.querySelector(".txt").textContent = text;
+      div.querySelector(".turn-del").addEventListener("click", () => { div.remove(); });
       turns.prepend(div);
       translateTurn(id, text);
     }
