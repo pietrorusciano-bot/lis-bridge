@@ -199,8 +199,10 @@
     },
     "TANTI ALTRI": {
       "fsw": "",
+      "validato": false,
+      "nota": "",
       "video": "",
-      "image": ""
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1789504126/lis_bridge/lis_global_img_TANTI%20ALTRI.png"
     },
     "TUTTI": {
       "fsw": "",
