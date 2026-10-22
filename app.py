@@ -92,6 +92,26 @@ def get_dictionary():
     return jsonify({"segni": json_store.get_signs()})
 
 
+@app.route("/api/dictionary", methods=["POST"])
+def upsert_dictionary():
+    if not _check_admin():
+        return jsonify({"error": "Non autorizzato"}), 401
+    data = request.get_json(silent=True) or {}
+    try:
+        segni = json_store.upsert(
+            data.get("gloss", ""),
+            fsw=data.get("fsw"),
+            nota=data.get("nota"),
+            video=data.get("video"),
+            image=data.get("image"),
+            clear_video=bool(data.get("clear_video")),
+            clear_image=bool(data.get("clear_image")),
+        )
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    return jsonify({"segni": segni})
+
+
 ALLOWED_VIDEO_EXT = {".mp4", ".webm", ".mov"}
 ALLOWED_IMAGE_EXT = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"}
 

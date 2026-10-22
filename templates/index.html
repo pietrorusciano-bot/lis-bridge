@@ -341,6 +341,41 @@
       padding: 8px; line-height: 1;
     }
     .hidden { display: none !important; }
+
+    /* ===== EDIT SHEET ===== */
+    textarea {
+      width: 100%; padding: 13px 14px; font-size: 1rem;
+      border: 1px solid var(--border); border-radius: 14px;
+      background: #fbfaff; color: var(--text); font-family: monospace; min-height: 70px;
+      resize: vertical;
+    }
+    textarea:focus { outline: 2px solid #ddd0ff; }
+    .edit-modal {
+      position: fixed; inset: 0; background: rgba(17,12,28,0.55);
+      display: flex; align-items: flex-end; justify-content: center;
+      z-index: 900;
+    }
+    .edit-modal.hidden { display: none; }
+    .edit-sheet {
+      background: #fff; width: 100%; max-width: 560px;
+      border-radius: 26px 26px 0 0; padding: 20px 20px calc(24px + env(safe-area-inset-bottom));
+      max-height: 92vh; overflow-y: auto;
+      animation: sheetUp .22s ease-out;
+    }
+    @keyframes sheetUp { from { transform: translateY(60px); opacity: .6; } to { transform: translateY(0); opacity: 1; } }
+    .chk-row { display: flex; gap: 18px; margin: 14px 0 4px; flex-wrap: wrap; }
+    .chk { display: flex; align-items: center; gap: 8px; font-size: .92rem; color: #4b5563; font-weight: 600; }
+    .chk input { width: 20px; height: 20px; accent-color: var(--accent); }
+    .media-info {
+      background: #fbf6ff; border: 1px dashed #e2d3fb; border-radius: 12px;
+      padding: 10px 12px; font-size: .86rem; color: #6b5f85; margin-top: 12px;
+    }
+    .btn-edit {
+      background: #ede9fe; color: #5b21b6; border: none; border-radius: 12px;
+      padding: 9px 14px; font-weight: 700; font-size: .85rem; cursor: pointer;
+    }
+    .btn-edit:active { background: #ddd0ff; }
+    .row-actions { display: flex; gap: 6px; }
   </style>
 </head>
 <body>
@@ -470,6 +505,45 @@
     <div class="lb-label" id="lbLabel"></div>
   </div>
 
+  <div id="editModal" class="edit-modal hidden">
+    <div class="edit-sheet">
+      <div class="card-head">
+        <div class="title">Modifica segno</div>
+        <button class="mini-btn" id="editClose" aria-label="Chiudi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <label class="field-label" for="editGloss">Glossa</label>
+      <input type="text" id="editGloss" placeholder="Es. CASA">
+
+      <label class="field-label" for="editNota">Descrizione / nota</label>
+      <input type="text" id="editNota" placeholder="Descrizione del segno">
+
+      <label class="field-label" for="editFsw">Codice FSW (opzionale)</label>
+      <textarea id="editFsw" placeholder="M518x533S1870a489x515..."></textarea>
+
+      <div class="media-info" id="editMediaInfo">Nessun media associato.</div>
+
+      <div class="chk-row">
+        <label class="chk"><input type="checkbox" id="editClearVideo"> Rimuovi video</label>
+        <label class="chk"><input type="checkbox" id="editClearImage"> Rimuovi immagine</label>
+      </div>
+
+      <label class="field-label" for="editVfile">Sostituisci / allega video</label>
+      <input type="file" id="editVfile" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov">
+
+      <label class="field-label" for="editIfile">Sostituisci / allega immagine</label>
+      <input type="file" id="editIfile" accept="image/png,image/jpeg,image/gif,image/webp,.png,.jpg,.jpeg,.gif,.webp">
+
+      <button class="btn-primary" id="editSave">Salva modifiche</button>
+      <div id="editMsg" class="msg"></div>
+    </div>
+  </div>
+
   <script>
     let dictionary = {};
     let adminToken = localStorage.getItem("adminToken") || "";
@@ -553,7 +627,7 @@
         const s = dictionary[gloss];
         const row = document.createElement("div");
         row.className = "catalog-row";
-        row.innerHTML = `<div class="gloss">${gloss}</div><div class="thumb"></div><button class="btn-del" data-gloss="${gloss}">Elimina</button>`;
+        row.innerHTML = `<div class="gloss">${gloss}</div><div class="thumb"></div><div class="row-actions"><button class="btn-edit" data-gloss="${gloss}">Modifica</button><button class="btn-del" data-gloss="${gloss}">Elimina</button></div>`;
         rows.appendChild(row);
         try {
           const thumb = row.querySelector(".thumb");
@@ -563,6 +637,9 @@
           else thumb.innerHTML = '<span class="thumb-empty">—</span>';
         } catch (e) {}
       }
+      rows.querySelectorAll(".btn-edit").forEach(btn => {
+        btn.addEventListener("click", () => openEdit(btn.dataset.gloss));
+      });
       rows.querySelectorAll(".btn-del").forEach(btn => {
         btn.addEventListener("click", async () => {
           if (!confirm("Eliminare il segno " + btn.dataset.gloss + "?")) return;
@@ -575,6 +652,102 @@
         });
       });
     }
+
+    let editingGloss = "";
+
+    function openEdit(gloss) {
+      editingGloss = gloss;
+      const s = dictionary[gloss] || {};
+      document.getElementById("editGloss").value = gloss;
+      document.getElementById("editNota").value = s.nota || "";
+      document.getElementById("editFsw").value = s.fsw || "";
+      document.getElementById("editVfile").value = "";
+      document.getElementById("editIfile").value = "";
+      document.getElementById("editClearVideo").checked = false;
+      document.getElementById("editClearImage").checked = false;
+      const msg = document.getElementById("editMsg");
+      msg.textContent = ""; msg.className = "msg";
+      const parts = [];
+      if (s.video) parts.push("video");
+      if (s.image) parts.push("immagine");
+      if (s.fsw) parts.push("simbolo FSW");
+      document.getElementById("editMediaInfo").textContent =
+        parts.length ? ("Contenuto attuale: " + parts.join(", ")) : "Nessun media associato.";
+      document.getElementById("editModal").classList.remove("hidden");
+    }
+
+    function closeEdit() {
+      document.getElementById("editModal").classList.add("hidden");
+    }
+
+    document.getElementById("editClose").addEventListener("click", closeEdit);
+    document.getElementById("editModal").addEventListener("click", (e) => {
+      if (e.target.id === "editModal") closeEdit();
+    });
+
+    document.getElementById("editSave").addEventListener("click", async () => {
+      const oldGloss = editingGloss;
+      const newGloss = document.getElementById("editGloss").value.trim().toUpperCase();
+      const nota = document.getElementById("editNota").value;
+      const fsw = document.getElementById("editFsw").value.trim();
+      const vfile = document.getElementById("editVfile");
+      const ifile = document.getElementById("editIfile");
+      const clearV = document.getElementById("editClearVideo").checked;
+      const clearI = document.getElementById("editClearImage").checked;
+      const msg = document.getElementById("editMsg");
+      msg.textContent = ""; msg.className = "msg";
+      if (!newGloss) { msg.textContent = "La glossa non può essere vuota"; msg.className = "msg err"; return; }
+
+      const oldData = dictionary[oldGloss] || {};
+      const rename = oldGloss !== newGloss;
+      const payload = { gloss: newGloss, fsw: fsw, nota: nota };
+
+      try {
+        if (vfile.files.length) {
+          const fd = new FormData();
+          fd.append("gloss", newGloss);
+          fd.append("video", vfile.files[0]);
+          const r = await fetch("/api/upload_video", { method: "POST", headers: authHeaders(), body: fd });
+          const d = await r.json();
+          if (!r.ok) throw new Error(d.error || "errore video");
+          payload.video = d.video_url;
+        } else if (clearV) {
+          payload.video = "";
+        } else if (rename) {
+          payload.video = oldData.video || "";
+        }
+
+        if (ifile.files.length) {
+          const fd = new FormData();
+          fd.append("gloss", newGloss);
+          fd.append("image", ifile.files[0]);
+          const r = await fetch("/api/upload_image", { method: "POST", headers: authHeaders(), body: fd });
+          const d = await r.json();
+          if (!r.ok) throw new Error(d.error || "errore immagine");
+          payload.image = d.image_url;
+        } else if (clearI) {
+          payload.image = "";
+        } else if (rename) {
+          payload.image = oldData.image || "";
+        }
+
+        const headers = Object.assign({ "Content-Type": "application/json" }, authHeaders());
+        const res = await fetch("/api/dictionary", { method: "POST", headers: headers, body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "errore");
+
+        if (rename) {
+          await fetch("/api/dictionary/" + encodeURIComponent(oldGloss), { method: "DELETE", headers: authHeaders() });
+          await refreshDictionary();
+        } else {
+          dictionary = data.segni || {};
+          renderRows();
+        }
+        closeEdit();
+      } catch (e) {
+        msg.textContent = "Errore: " + e.message; msg.className = "msg err";
+      }
+    });
 
     document.getElementById("upload").addEventListener("click", async () => {
       const gloss = document.getElementById("vgloss").value.trim().toUpperCase();

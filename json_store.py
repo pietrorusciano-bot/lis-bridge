@@ -25,18 +25,31 @@ def get_signs():
     return load()
 
 
-def upsert(gloss, fsw="", validato=False, nota="", video="", image=""):
+def upsert(gloss, fsw=None, validato=None, nota=None, video=None, image=None,
+           clear_video=False, clear_image=False):
     gloss = gloss.strip().upper()
     if not gloss:
         raise ValueError("La glossa non può essere vuota")
     segni = load()
     existing = segni.get(gloss, {})
+    if clear_video:
+        new_video = ""
+    elif video is not None:
+        new_video = video.strip()
+    else:
+        new_video = existing.get("video", "")
+    if clear_image:
+        new_image = ""
+    elif image is not None:
+        new_image = image.strip()
+    else:
+        new_image = existing.get("image", "")
     segni[gloss] = {
-        "fsw": (fsw or existing.get("fsw", "")).strip(),
-        "validato": bool(validato),
-        "nota": (nota or existing.get("nota", "")).strip(),
-        "video": (video or existing.get("video", "")).strip(),
-        "image": (image or existing.get("image", "")).strip(),
+        "fsw": existing.get("fsw", "") if fsw is None else fsw.strip(),
+        "validato": existing.get("validato", False) if validato is None else bool(validato),
+        "nota": existing.get("nota", "") if nota is None else nota.strip(),
+        "video": new_video,
+        "image": new_image,
     }
     save(segni)
     return segni
