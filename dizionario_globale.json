@@ -238,6 +238,13 @@
       "nota": "",
       "video": "",
       "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792701255/lis_bridge/lis_global_img_ANDARE.png"
+    },
+    "ACQUA": {
+      "fsw": "",
+      "validato": false,
+      "nota": "",
+      "video": "",
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792701264/lis_bridge/lis_global_img_ACQUA.png"
     }
   }
 }
