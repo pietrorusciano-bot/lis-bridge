@@ -37,8 +37,10 @@
     },
     "BUONA VACANZA": {
       "fsw": "",
+      "validato": false,
+      "nota": "",
       "video": "",
-      "image": ""
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1789503939/lis_bridge/lis_global_img_BUONA%20VACANZA.png"
     },
     "BUONANOTTE": {
       "fsw": "",
