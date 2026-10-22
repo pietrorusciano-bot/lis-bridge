@@ -9,8 +9,10 @@
     },
     "ARRIVARE": {
       "fsw": "",
+      "validato": false,
+      "nota": "",
       "video": "",
-      "image": ""
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1789503898/lis_bridge/lis_global_img_ARRIVARE.png"
     },
     "BUON POMERIGGIO": {
       "fsw": "",
