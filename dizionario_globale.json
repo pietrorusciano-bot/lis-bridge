@@ -140,8 +140,10 @@
     },
     "INFORMAZIONI": {
       "fsw": "",
+      "validato": false,
+      "nota": "",
       "video": "",
-      "image": ""
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1789504062/lis_bridge/lis_global_img_INFORMAZIONI.png"
     },
     "LINGUA": {
       "fsw": "",
