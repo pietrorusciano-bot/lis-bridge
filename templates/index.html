@@ -104,6 +104,17 @@
       background: var(--green);
       box-shadow: 0 0 0 4px rgba(34,197,94,0.15);
     }
+    .dict-status {
+      text-align: center;
+      font-size: .78rem;
+      color: #9a94ab;
+      margin: -10px 0 14px;
+      min-height: 16px;
+      transition: color .2s;
+    }
+    .dict-status.ok { color: #15803d; }
+    .dict-status.warn { color: #b45309; }
+    .dict-status.syncing { color: #7c3aed; }
 
     /* ===== LISTEN CARD ===== */
     .listen-card {
@@ -480,6 +491,7 @@
     <!-- =========================== PAGE 1 : ASCOLTO =========================== -->
     <section class="page" id="pageAscolta">
       <div class="profile-pill"><span class="dot"></span> Profilo: <b>Standard</b></div>
+      <div class="dict-status" id="dictStatus">Caricamento dizionario…</div>
 
       <div class="listen-card" id="listenCard">
         <div class="mascot"><img src="static/logo.png" alt="LIS Bridge"></div>
@@ -684,13 +696,23 @@
       return h;
     }
 
+    function setDictStatus(text, state) {
+      const el = document.getElementById("dictStatus");
+      if (!el) return;
+      el.textContent = text;
+      el.className = "dict-status " + (state || "");
+    }
+
     async function refreshDictionary() {
       try {
         const res = await fetch("/api/dictionary");
         const data = await res.json();
         if (data.segni) dictionary = data.segni;
         renderRows();
-      } catch (e) {}
+        setDictStatus("Dizionario: " + Object.keys(dictionary).length + " segni", "ok");
+      } catch (e) {
+        setDictStatus("Offline: uso la copia locale", "warn");
+      }
     }
 
     async function checkAdmin() {
@@ -1216,6 +1238,12 @@
     refreshDictionary();
     checkAdmin();
     checkStorage();
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && typeof syncDictionaryFromGitHub === "function") {
+        syncDictionaryFromGitHub();
+      }
+    });
 
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => navigator.serviceWorker.register("/static/sw.js"));
