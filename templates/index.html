@@ -2,12 +2,12 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>LIS Bridge</title>
   <link rel="manifest" href="/static/manifest.json">
   <link rel="icon" href="/static/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="/static/icon-192.png">
-  <meta name="theme-color" content="#1a73e8">
+  <meta name="theme-color" content="#f7f4fd">
   <script src="https://unpkg.com/@sutton-signwriting/font-ttf@1.5.2"></script>
   <style>
     @font-face {
@@ -18,129 +18,454 @@
       font-family: "SuttonSignWritingFill";
       src: url("https://unpkg.com/@sutton-signwriting/font-ttf@1.5.2/font/SuttonSignWritingFill.ttf") format("truetype");
     }
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 0 auto; padding: 0 20px 60px; }
-    header { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid #eee; }
-    h1 { font-size: 1.3rem; margin: 0; }
-    nav { display: flex; gap: 4px; margin: 16px 0; }
-    nav button { flex: 1; padding: 12px; font-size: 1rem; border: 1px solid #ddd; background: #f5f5f5; border-radius: 8px; cursor: pointer; }
-    nav button.active { background: #1a73e8; color: #fff; border-color: #1a73e8; }
-    .view { display: none; }
-    .view.active { display: block; }
-    button { font-size: 1rem; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; }
-    #toggle { background: #d33; color: #fff; padding: 14px 28px; font-size: 1.2rem; }
-    #toggle.on { background: #2a2; }
-    #live { background: #f4f4f4; border-radius: 8px; padding: 12px 16px; margin: 16px 0; min-height: 30px; color: #777; font-style: italic; }
-    .turn { border: 1px solid #ddd; border-radius: 8px; padding: 12px 16px; margin: 12px 0; background: #fafafa; }
-    .speaker { font-weight: bold; color: #335; margin-bottom: 6px; }
-    .turn .txt { color: #444; margin-bottom: 6px; }
-    .turn .semplice { color: #777; font-style: italic; margin-bottom: 6px; }
-    .turn .lis { background: #fef4e6; border: 1px solid #f0d8b0; border-radius: 6px; padding: 8px 10px; font-weight: bold; letter-spacing: 0.05em; }
-    .turn .lis.pending { color: #999; }
-    .sign-inline { display: inline-block; vertical-align: middle; margin: 2px 4px; text-align: center; }
-    .sign-inline svg { display: block; margin: 0 auto; }
-    .sign-inline .gloss-label { font-size: 0.7rem; color: #8a6d3b; letter-spacing: normal; font-weight: normal; }
-    .gloss-plain { display: inline-block; margin: 2px 4px; }
-    .empty { color: #999; }
+    :root {
+      --bg: #f7f4fd;
+      --card: #ffffff;
+      --lavender: #f1e8ff;
+      --lavender-2: #e9dcff;
+      --accent: #7c3aed;
+      --accent-2: #9333ea;
+      --accent-dark: #5b21b6;
+      --text: #1f2233;
+      --muted: #6b7280;
+      --muted-2: #9ca3af;
+      --border: #ece7f7;
+      --green: #22c55e;
+      --orange: #f59e0b;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: 96px;
+      overflow-x: hidden;
+    }
 
-    .auth-box { border: 1px solid #ddd; border-radius: 10px; padding: 20px; margin: 16px 0; }
-    .auth-box input { width: 100%; padding: 10px; margin: 6px 0; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; }
-    #unlockBtn { background: #1a73e8; color: #fff; width: 100%; margin-top: 8px; }
-    .auth-msg { margin-top: 10px; font-weight: bold; }
-    .auth-msg.err { color: #d33; }
-    .auth-msg.ok { color: #187a3a; }
+    /* ===== TOP BAR ===== */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 20px 10px;
+    }
+    .logo { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; }
+    .logo .l1 { color: #111827; }
+    .logo .l2 { color: var(--orange); }
+    .icon-btn {
+      background: transparent; border: none; cursor: pointer;
+      width: 42px; height: 42px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      color: #111827;
+    }
+    .icon-btn:active { background: var(--lavender); }
 
-    .manage-box { border: 1px solid #ddd; border-radius: 10px; padding: 20px; margin: 16px 0; }
-    .manage-box label { display: block; margin: 12px 0 4px; font-weight: bold; }
-    .manage-box input[type=text], .manage-box textarea { width: 100%; padding: 8px; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; }
-    .manage-box textarea { font-family: monospace; min-height: 70px; }
-    .row { display: flex; align-items: center; gap: 10px; }
-    .row input[type=text] { flex: 1; }
-    .row input[type=file] { flex: 2; }
-    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: middle; }
-    th { background: #f5f5f5; }
-    .del { background: #d33; color: #fff; padding: 4px 10px; }
-    .msg { margin-top: 10px; font-weight: bold; }
-    .msg.err { color: #d33; }
-    .msg.ok { color: #187a3a; }
-    .hint { color: #888; font-size: 0.85rem; }
-    .hidden { display: none; }
+    /* ===== PAGES / SWIPE ===== */
+    .pages {
+      display: flex;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .pages::-webkit-scrollbar { display: none; }
+    .page {
+      flex: 0 0 100%;
+      min-width: 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      padding: 4px 20px 24px;
+    }
 
+    /* ===== PROFILE PILL ===== */
+    .profile-pill {
+      margin: 6px auto 18px;
+      width: fit-content;
+      display: flex; align-items: center; gap: 8px;
+      background: var(--lavender);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 12px 22px;
+      font-size: 1.02rem;
+    }
+    .profile-pill b { color: var(--accent); font-weight: 800; }
+    .profile-pill .dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 4px rgba(34,197,94,0.15);
+    }
+
+    /* ===== LISTEN CARD ===== */
+    .listen-card {
+      background: linear-gradient(180deg, #f3eaff 0%, #ece0ff 100%);
+      border-radius: 28px;
+      padding: 26px 22px 28px;
+      text-align: center;
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .mascot {
+      width: 96px; height: 96px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 25%, #c4b5fd, #6d28d9 70%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 52px;
+      box-shadow: 0 10px 24px rgba(109,40,217,0.28);
+      position: relative;
+    }
+    .mascot::after {
+      content: "";
+      position: absolute; inset: -6px;
+      border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.55);
+    }
+    .status-title {
+      font-size: 1.45rem; font-weight: 800; margin: 2px 0 6px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .status-title .sdot {
+      width: 12px; height: 12px; border-radius: 50%; background: var(--muted-2);
+      transition: background .25s;
+    }
+    .listening .status-title .sdot { background: var(--green); box-shadow: 0 0 0 4px rgba(34,197,94,0.18); }
+    .status-sub { color: var(--muted); font-size: 1.02rem; margin-bottom: 16px; }
+    .dots { display: flex; gap: 7px; justify-content: center; margin-bottom: 22px; }
+    .dots i {
+      width: 8px; height: 8px; border-radius: 50%; background: #cdbaf0;
+    }
+    .dots i:nth-child(-n+5) { background: var(--accent); opacity: .85; }
+    .mic-btn {
+      width: 108px; height: 108px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(145deg, #8b5cf6, #6d28d9);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto;
+      box-shadow: 0 14px 30px rgba(109,40,217,0.4), inset 0 2px 6px rgba(255,255,255,0.35);
+      transition: transform .12s ease, box-shadow .2s;
+    }
+    .mic-btn:active { transform: scale(0.94); }
+    .mic-btn svg { width: 46px; height: 46px; }
+    .mic-btn.on {
+      background: linear-gradient(145deg, #ef4444, #b91c1c);
+      box-shadow: 0 14px 30px rgba(185,28,28,0.38), inset 0 2px 6px rgba(255,255,255,0.3);
+      animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.45), 0 14px 30px rgba(185,28,28,0.38); }
+      70% { box-shadow: 0 0 0 22px rgba(239,68,68,0), 0 14px 30px rgba(185,28,28,0.38); }
+      100% { box-shadow: 0 0 0 0 rgba(239,68,68,0), 0 14px 30px rgba(185,28,28,0.38); }
+    }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: var(--card);
+      border-radius: 24px;
+      padding: 18px 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 20px rgba(76,29,149,0.06);
+    }
+    .card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .card-head .title {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 1.06rem;
+      color: var(--accent-dark);
+    }
+    .card-head .title svg { color: var(--accent); }
+    .mini-btn {
+      background: transparent; border: none; cursor: pointer;
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: #5b5b6b;
+    }
+    .mini-btn:active { background: var(--lavender); }
+
+    .live {
+      background: #fbfaff;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      min-height: 74px;
+      color: var(--muted-2);
+      font-style: italic;
+      font-size: 1.02rem;
+      line-height: 1.45;
+    }
+    .live.has-text { color: var(--text); font-style: normal; }
+
+    /* ===== TURNS ===== */
+    .turn {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 6px 20px rgba(76,29,149,0.06);
+    }
+    .speaker {
+      font-weight: 800; color: var(--accent); margin-bottom: 8px;
+      font-size: .92rem; letter-spacing: .02em; text-transform: uppercase;
+    }
+    .turn .txt { color: #374151; margin-bottom: 6px; line-height: 1.4; }
+    .turn .semplice { color: var(--muted); font-style: italic; margin-bottom: 10px; font-size: .96rem; }
+    .turn .lis {
+      background: #fbf6ff;
+      border: 1px solid #ecdfff;
+      border-radius: 16px;
+      padding: 12px;
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+      min-height: 64px;
+    }
+    .turn .lis.pending { color: var(--muted-2); font-style: italic; }
+    .turn .lis.pending::before { content: "Traduzione LIS…"; }
+    .turn .lis.pending > * { display: none; }
+
+    .sign-inline {
+      display: inline-flex; flex-direction: column; align-items: center;
+      gap: 4px; padding: 4px; border-radius: 12px;
+    }
     .sign-inline.clickable { cursor: pointer; }
-    .sign-inline.clickable:hover { opacity: 0.85; }
-    #lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; flex-direction: column; padding: 20px; }
+    .sign-inline.clickable:active { opacity: .8; }
+    .sign-inline svg { display: block; }
+    .sign-inline .gloss-label {
+      font-size: .66rem; color: #8b6fbf; font-weight: 700; letter-spacing: .04em;
+    }
+    .gloss-plain {
+      display: inline-block;
+      background: var(--lavender);
+      color: var(--accent-dark);
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-weight: 700;
+      font-size: .85rem;
+    }
+    .empty { color: var(--muted-2); }
+
+    /* ===== CONFIG PAGE ===== */
+    .section-title { font-size: 1.15rem; font-weight: 800; margin: 4px 0 12px; }
+    .field-label { display: block; font-size: .9rem; font-weight: 700; color: #4b5563; margin: 12px 0 6px; }
+    input[type=text], input[type=password] {
+      width: 100%; padding: 13px 14px; font-size: 1rem;
+      border: 1px solid var(--border); border-radius: 14px;
+      background: #fbfaff; color: var(--text);
+    }
+    input[type=text]:focus, input[type=password]:focus { outline: 2px solid #ddd0ff; }
+    input[type=file] {
+      width: 100%; font-size: .92rem; padding: 10px;
+      border: 1px dashed #d9cdf5; border-radius: 14px; background: #fbfaff;
+      color: var(--muted);
+    }
+    .btn-primary {
+      width: 100%; margin-top: 14px;
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+      color: #fff; border: none; border-radius: 16px;
+      padding: 14px; font-size: 1rem; font-weight: 700; cursor: pointer;
+      box-shadow: 0 8px 20px rgba(109,40,217,0.25);
+    }
+    .btn-primary:active { transform: scale(.985); }
+    .msg { margin-top: 10px; font-weight: 700; font-size: .92rem; }
+    .msg.ok { color: #15803d; }
+    .msg.err { color: #dc2626; }
+    .hint { color: var(--muted); font-size: .87rem; line-height: 1.4; }
+
+    .catalog { margin-top: 6px; }
+    .catalog-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 4px; border-bottom: 1px solid #f2eefb;
+    }
+    .catalog-row:last-child { border-bottom: none; }
+    .catalog-row .gloss { flex: 1; font-weight: 700; }
+    .catalog-row .thumb {
+      width: 56px; height: 56px; border-radius: 14px; overflow: hidden;
+      background: var(--lavender); display: flex; align-items: center; justify-content: center;
+      flex: 0 0 auto;
+    }
+    .catalog-row .thumb video, .catalog-row .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .thumb-empty { color: var(--muted-2); font-size: .7rem; }
+    .btn-del {
+      background: #fee2e2; color: #b91c1c; border: none; border-radius: 12px;
+      padding: 9px 14px; font-weight: 700; font-size: .85rem; cursor: pointer;
+    }
+    .btn-del:active { background: #fecaca; }
+
+    /* ===== BOTTOM NAV ===== */
+    .bottom-nav {
+      position: fixed; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(14px);
+      border-top: 1px solid #efe9fa;
+      display: flex; justify-content: space-around; align-items: center;
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+      z-index: 50;
+    }
+    .nav-item {
+      flex: 1;
+      background: transparent; border: none; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 8px 4px; border-radius: 18px;
+      color: #8b8b9b; font-size: .82rem; font-weight: 600;
+    }
+    .nav-item svg { width: 26px; height: 26px; }
+    .nav-item.active { color: var(--accent-dark); }
+    .nav-item.active .nav-pill {
+      background: var(--lavender);
+    }
+    .nav-pill {
+      display: flex; align-items: center; justify-content: center;
+      padding: 6px 22px; border-radius: 999px;
+    }
+
+    /* ===== LIGHTBOX ===== */
+    #lightbox {
+      position: fixed; inset: 0; background: rgba(17,12,28,0.92);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; flex-direction: column; padding: 20px;
+    }
     #lightbox.hidden { display: none; }
-    #lightbox .lb-content { max-width: 92vw; max-height: 80vh; display: flex; align-items: center; justify-content: center; }
-    #lightbox img, #lightbox video { max-width: 92vw; max-height: 80vh; object-fit: contain; border-radius: 10px; }
+    #lightbox .lb-content {
+      max-width: 92vw; max-height: 80vh;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #lightbox img, #lightbox video { max-width: 92vw; max-height: 80vh; object-fit: contain; border-radius: 16px; }
     #lightbox svg { max-width: 92vw; max-height: 80vh; }
-    #lightbox .lb-label { color: #fff; margin-top: 12px; font-size: 1.2rem; font-weight: bold; }
-    #lightbox .lb-close { position: absolute; top: 16px; right: 20px; color: #fff; font-size: 2rem; cursor: pointer; background: none; border: none; padding: 8px; line-height: 1; }
+    #lightbox .lb-label { color: #fff; margin-top: 14px; font-size: 1.2rem; font-weight: 800; }
+    #lightbox .lb-close {
+      position: absolute; top: 16px; right: 20px; color: #fff;
+      font-size: 2rem; cursor: pointer; background: none; border: none;
+      padding: 8px; line-height: 1;
+    }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>LIS Bridge</h1>
+  <header class="topbar">
+    <div class="logo"><span class="l1">LIS</span><span class="l2">Bridge</span></div>
+    <button class="icon-btn" id="topAction" title="Modalità">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+    </button>
   </header>
 
-  <nav>
-    <button id="tabUse" class="active">Utilizzo</button>
-    <button id="tabManage">Gestione</button>
+  <div class="pages" id="pages">
+    <!-- =========================== PAGE 1 : ASCOLTO =========================== -->
+    <section class="page" id="pageAscolta">
+      <div class="profile-pill"><span class="dot"></span> Profilo: <b>Standard</b></div>
+
+      <div class="listen-card" id="listenCard">
+        <div class="mascot">🤖</div>
+        <div class="status-title"><span class="sdot"></span><span id="statusTitle">Pronto ad ascoltare</span></div>
+        <div class="status-sub" id="statusSub">Tocca il microfono per iniziare</div>
+        <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <button class="mic-btn" id="toggle" aria-label="Avvia ascolto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="2" width="6" height="12" rx="3"></rect>
+            <path d="M5 10v1a7 7 0 0 0 14 0v-1"></path>
+            <line x1="12" y1="18" x2="12" y2="22"></line>
+            <line x1="8" y1="22" x2="16" y2="22"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+              <path d="M3 12h2l2-6 3 12 3-9 2 3h6"></path>
+            </svg>
+            Trascrizione in tempo reale
+          </div>
+          <button class="mini-btn" id="clearBtn" title="Cancella conversazione">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+              <path d="M10 11v6M14 11v6"></path>
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="live" id="live">Parla: qui apparirà la trascrizione in tempo reale.</div>
+      </div>
+
+      <div id="turns"></div>
+    </section>
+
+    <!-- ====================== PAGE 2 : CONFIGURAZIONE ====================== -->
+    <section class="page" id="pageConfig">
+      <div class="profile-pill"><span class="dot"></span> <b>Configurazione</b></div>
+
+      <div id="authBox" class="card">
+        <div class="section-title">Accesso amministratore</div>
+        <p class="hint">Inserisci la password per gestire il catalogo dei segni.</p>
+        <label class="field-label" for="adminPassword">Password</label>
+        <input type="password" id="adminPassword" placeholder="Password amministratore">
+        <button class="btn-primary" id="unlockBtn">Sblocca configurazione</button>
+        <div id="authMsg" class="msg"></div>
+      </div>
+
+      <div id="manageBox" class="hidden">
+        <div class="card">
+          <div class="section-title">Carica video del segno</div>
+          <p class="hint">Il video viene salvato su Cloudinary e associato alla glossa.</p>
+          <label class="field-label" for="vgloss">Glossa</label>
+          <input type="text" id="vgloss" placeholder="Es. CASA">
+          <label class="field-label" for="vfile">File video</label>
+          <input type="file" id="vfile" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov">
+          <button class="btn-primary" id="upload">Carica video</button>
+          <div id="vmsg" class="msg"></div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Carica immagine del segno</div>
+          <p class="hint">Un'immagine del segno (disegno, foto, pittogramma).</p>
+          <label class="field-label" for="igloss">Glossa</label>
+          <input type="text" id="igloss" placeholder="Es. CASA">
+          <label class="field-label" for="ifile">File immagine</label>
+          <input type="file" id="ifile" accept="image/png,image/jpeg,image/gif,image/webp,.png,.jpg,.jpeg,.gif,.webp">
+          <button class="btn-primary" id="iupload">Carica immagine</button>
+          <div id="imsg" class="msg"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="title">Catalogo dei segni</div>
+          </div>
+          <div class="catalog" id="rows"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-page="0">
+      <span class="nav-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="2" width="6" height="12" rx="3"></rect>
+          <path d="M5 10v1a7 7 0 0 0 14 0v-1"></path>
+          <line x1="12" y1="18" x2="12" y2="22"></line>
+        </svg>
+      </span>
+      <span>Modalità Ascolto</span>
+    </button>
+    <button class="nav-item" data-page="1">
+      <span class="nav-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </span>
+      <span>Modalità Configurazione</span>
+    </button>
   </nav>
 
-  <!-- VISTA UTILIZZO -->
-  <div id="viewUse" class="view active">
-    <p class="hint">Premi "Avvia", parla: trascrizione in tempo reale e traduzione in LIS.</p>
-    <button id="toggle">Avvia</button>
-    <div id="live" class="empty">In attesa...</div>
-    <h2>Conversazione</h2>
-    <div id="turns" class="empty">Nessuna trascrizione ancora.</div>
-  </div>
-
-  <!-- VISTA GESTIONE -->
-  <div id="viewManage" class="view">
-    <div id="authBox" class="auth-box">
-      <h2>Accesso amministratore</h2>
-      <p class="hint">Inserisci la password per gestire il catalogo dei segni.</p>
-      <input type="password" id="adminPassword" placeholder="Password">
-      <button id="unlockBtn">Sblocca gestione</button>
-      <div id="authMsg" class="auth-msg"></div>
-    </div>
-
-    <div id="manageBox" class="hidden">
-      <div class="manage-box">
-        <h2>Carica video del segno</h2>
-        <p class="hint">Il video va su Cloudinary e viene associato alla glossa.</p>
-        <div class="row">
-          <input type="text" id="vgloss" placeholder="Glossa (es. CASA)">
-          <input type="file" id="vfile" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov">
-        </div>
-        <button id="upload" style="background:#1a73e8;color:#fff;margin-top:10px">Carica video</button>
-        <div id="vmsg" class="msg"></div>
-      </div>
-
-      <div class="manage-box">
-        <h2>Carica immagine del segno</h2>
-        <p class="hint">Un'immagine del segno (disegno, foto, pittogramma). Va su Cloudinary.</p>
-        <div class="row">
-          <input type="text" id="igloss" placeholder="Glossa (es. CASA)">
-          <input type="file" id="ifile" accept="image/png,image/jpeg,image/gif,image/webp,.png,.jpg,.jpeg,.gif,.webp">
-        </div>
-        <button id="iupload" style="background:#1a73e8;color:#fff;margin-top:10px">Carica immagine</button>
-        <div id="imsg" class="msg"></div>
-      </div>
-
-      <h2>Catalogo dei segni</h2>
-      <p class="hint">Glosse con video o immagine associata. Elimina un segno se sbagliato.</p>
-      <table>
-        <thead><tr><th>Glossa</th><th>Segno</th><th>Azioni</th></tr></thead>
-        <tbody id="rows"></tbody>
-      </table>
-    </div>
-  </div>
-
   <div id="lightbox" class="hidden">
-    <button class="lb-close" id="lbClose">×</button>
+    <button class="lb-close" id="lbClose">&times;</button>
     <div class="lb-content" id="lbContent"></div>
     <div class="lb-label" id="lbLabel"></div>
   </div>
@@ -150,13 +475,24 @@
     let adminToken = localStorage.getItem("adminToken") || "";
     let socket = null, audioContext = null, processor = null, stream = null, running = false, sentenceId = 0;
 
-    const tabUse = document.getElementById("tabUse");
-    const tabManage = document.getElementById("tabManage");
-    const viewUse = document.getElementById("viewUse");
-    const viewManage = document.getElementById("viewManage");
+    const pages = document.getElementById("pages");
+    const navItems = document.querySelectorAll(".nav-item");
 
-    tabUse.addEventListener("click", () => { tabUse.classList.add("active"); tabManage.classList.remove("active"); viewUse.classList.add("active"); viewManage.classList.remove("active"); });
-    tabManage.addEventListener("click", () => { tabManage.classList.add("active"); tabUse.classList.remove("active"); viewManage.classList.add("active"); viewUse.classList.remove("active"); refreshDictionary(); });
+    function goToPage(index) {
+      pages.scrollTo({ left: index * pages.clientWidth, behavior: "smooth" });
+    }
+    navItems.forEach(item => {
+      item.addEventListener("click", () => goToPage(parseInt(item.dataset.page, 10)));
+    });
+    pages.addEventListener("scroll", () => {
+      const i = Math.round(pages.scrollLeft / pages.clientWidth);
+      navItems.forEach((n, idx) => n.classList.toggle("active", idx === i));
+    });
+
+    document.getElementById("topAction").addEventListener("click", () => {
+      const current = Math.round(pages.scrollLeft / pages.clientWidth);
+      goToPage(current === 0 ? 1 : 0);
+    });
 
     function authHeaders() {
       const h = {};
@@ -168,7 +504,7 @@
       try {
         const res = await fetch("/api/dictionary");
         const data = await res.json();
-        if (data.segni) { dictionary = data.segni; }
+        if (data.segni) dictionary = data.segni;
         renderRows();
       } catch (e) {}
     }
@@ -177,8 +513,8 @@
       try {
         const res = await fetch("/api/admin_status");
         const data = await res.json();
-        if (!data.auth_required) { unlockManage(); }
-        else if (adminToken) {
+        if (!data.auth_required) { unlockManage(); return; }
+        if (adminToken) {
           const r = await fetch("/api/dictionary", { headers: authHeaders() });
           if (r.ok) unlockManage();
         }
@@ -193,7 +529,7 @@
     document.getElementById("unlockBtn").addEventListener("click", async () => {
       const pw = document.getElementById("adminPassword").value;
       const msg = document.getElementById("authMsg");
-      msg.textContent = ""; msg.className = "auth-msg";
+      msg.textContent = ""; msg.className = "msg";
       adminToken = pw;
       try {
         const res = await fetch("/api/dictionary", { headers: authHeaders() });
@@ -203,30 +539,31 @@
           await refreshDictionary();
         } else {
           adminToken = "";
-          msg.textContent = "Password errata"; msg.className = "auth-msg err";
+          msg.textContent = "Password errata"; msg.className = "msg err";
         }
-      } catch (e) { msg.textContent = "Errore: " + e.message; msg.className = "auth-msg err"; }
+      } catch (e) { msg.textContent = "Errore: " + e.message; msg.className = "msg err"; }
     });
 
     function renderRows() {
       const rows = document.getElementById("rows");
       rows.innerHTML = "";
       const keys = Object.keys(dictionary).sort();
-      if (!keys.length) { rows.innerHTML = '<tr><td colspan="3" class="empty">Nessun segno.</td></tr>'; return; }
+      if (!keys.length) { rows.innerHTML = '<p class="empty">Nessun segno ancora.</p>'; return; }
       for (const gloss of keys) {
         const s = dictionary[gloss];
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td><b>${gloss}</b></td><td class="sign-cell"></td><td><button class="del" data-gloss="${gloss}">Elimina</button></td>`;
-        rows.appendChild(tr);
+        const row = document.createElement("div");
+        row.className = "catalog-row";
+        row.innerHTML = `<div class="gloss">${gloss}</div><div class="thumb"></div><button class="btn-del" data-gloss="${gloss}">Elimina</button>`;
+        rows.appendChild(row);
         try {
-          const cell = tr.querySelector(".sign-cell");
-          if (s.video) cell.innerHTML = `<video src="${s.video}" muted loop autoplay playsinline style="width:60px;height:60px;object-fit:cover;border-radius:6px"></video>`;
-          else if (s.image) cell.innerHTML = `<img src="${s.image}" alt="${gloss}" style="width:60px;height:60px;object-fit:contain;border-radius:6px">`;
-          else if (s.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) cell.innerHTML = ssw.ttf.fsw.signSvg(s.fsw);
-          else cell.textContent = "—";
+          const thumb = row.querySelector(".thumb");
+          if (s.video) thumb.innerHTML = `<video src="${s.video}" muted loop autoplay playsinline></video>`;
+          else if (s.image) thumb.innerHTML = `<img src="${s.image}" alt="${gloss}">`;
+          else if (s.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) thumb.innerHTML = ssw.ttf.fsw.signSvg(s.fsw);
+          else thumb.innerHTML = '<span class="thumb-empty">—</span>';
         } catch (e) {}
       }
-      document.querySelectorAll(".del").forEach(btn => {
+      rows.querySelectorAll(".btn-del").forEach(btn => {
         btn.addEventListener("click", async () => {
           if (!confirm("Eliminare il segno " + btn.dataset.gloss + "?")) return;
           try {
@@ -277,12 +614,21 @@
       } catch (e) { imsg.textContent = "Errore: " + e.message; imsg.className = "msg err"; }
     });
 
-    // ---------- UTILIZZO (trascrizione) ----------
+    /* ===== ASCOLTO ===== */
     const toggle = document.getElementById("toggle");
     const live = document.getElementById("live");
     const turns = document.getElementById("turns");
+    const listenCard = document.getElementById("listenCard");
+    const statusTitle = document.getElementById("statusTitle");
+    const statusSub = document.getElementById("statusSub");
 
     toggle.addEventListener("click", () => { if (running) stop(); else start(); });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      turns.innerHTML = "";
+      live.textContent = "Parla: qui apparirà la trascrizione in tempo reale.";
+      live.classList.remove("has-text");
+    });
 
     async function start() {
       try {
@@ -301,29 +647,35 @@
           processor.onaudioprocess = (e) => {
             if (socket && socket.readyState === WebSocket.OPEN) socket.send(floatTo16BitPCM(e.inputBuffer.getChannelData(0)));
           };
-          running = true; toggle.textContent = "Ferma"; toggle.classList.add("on");
-          live.textContent = "Ascolto..."; live.classList.remove("empty");
+          running = true;
+          toggle.classList.add("on");
+          listenCard.classList.add("listening");
+          statusTitle.textContent = "Sto ascoltando";
+          statusSub.textContent = "Tocca di nuovo per fermare";
+          live.textContent = "Ascolto in corso…";
+          live.classList.remove("has-text");
         };
         socket.onmessage = (event) => {
           const msg = JSON.parse(event.data);
           if (msg.type === "Turn") {
             const text = msg.transcript || "";
-            if (msg.end_of_turn && text) { live.textContent = ""; addTurn(msg.speaker_label || "A", text); }
-            else if (text) live.textContent = text;
+            if (msg.end_of_turn && text) { live.textContent = ""; live.classList.remove("has-text"); addTurn(msg.speaker_label || "A", text); }
+            else if (text) { live.textContent = text; live.classList.add("has-text"); }
           }
         };
-        socket.onerror = () => { live.textContent = "Errore WebSocket"; stop(); };
+        socket.onerror = () => { live.textContent = "Errore di connessione"; live.classList.add("has-text"); stop(); };
         socket.onclose = () => { if (running) stop(); };
-      } catch (err) { live.textContent = "Errore: " + err.message; }
+      } catch (err) { live.textContent = "Errore: " + err.message; live.classList.add("has-text"); }
     }
 
     function addTurn(speaker, text) {
+      document.querySelectorAll("#turns .empty").forEach(e => e.remove());
       const id = ++sentenceId;
       const div = document.createElement("div");
       div.className = "turn"; div.id = "turn-" + id;
-      div.innerHTML = `<div class="speaker">Speaker ${speaker}</div><div class="txt"></div><div class="semplice"></div><div class="lis pending">Traduzione LIS...</div>`;
+      div.innerHTML = `<div class="speaker">Speaker ${speaker}</div><div class="txt"></div><div class="semplice"></div><div class="lis pending"></div>`;
       div.querySelector(".txt").textContent = text;
-      turns.prepend(div); turns.classList.remove("empty");
+      turns.prepend(div);
       translateTurn(id, text);
     }
 
@@ -335,13 +687,13 @@
         if (!div) return;
         div.querySelector(".semplice").textContent = data.italiano || "";
         const lisBox = div.querySelector(".lis");
+        lisBox.classList.remove("pending");
         lisBox.innerHTML = "";
         if (data.errore_lis) lisBox.textContent = "Errore LIS: " + data.errore_lis;
         else renderLis(lisBox, data.lis || "");
-        lisBox.classList.remove("pending");
       } catch (err) {
         const div = document.getElementById("turn-" + id);
-        if (div) div.querySelector(".lis").textContent = "Errore LIS: " + err;
+        if (div) { const b = div.querySelector(".lis"); b.classList.remove("pending"); b.textContent = "Errore LIS: " + err; }
       }
     }
 
@@ -367,8 +719,8 @@
       const span = document.createElement("span"); span.className = "sign-inline clickable";
       const video = document.createElement("video");
       video.src = src; video.muted = true; video.loop = true; video.autoplay = true; video.playsInline = true;
-      video.style = "width:70px;height:70px;object-fit:cover;border-radius:6px;";
-      span.appendChild(video); span.appendChild(document.createElement("br"));
+      video.style = "width:64px;height:64px;object-fit:cover;border-radius:12px;";
+      span.appendChild(video);
       const label = document.createElement("span"); label.className = "gloss-label"; label.textContent = gloss;
       span.appendChild(label);
       span.addEventListener("click", () => openLightbox("video", src, gloss));
@@ -379,8 +731,8 @@
       const span = document.createElement("span"); span.className = "sign-inline clickable";
       const img = document.createElement("img");
       img.src = src; img.alt = gloss;
-      img.style = "width:70px;height:70px;object-fit:contain;border-radius:6px;";
-      span.appendChild(img); span.appendChild(document.createElement("br"));
+      img.style = "width:64px;height:64px;object-fit:contain;border-radius:12px;";
+      span.appendChild(img);
       const label = document.createElement("span"); label.className = "gloss-label"; label.textContent = gloss;
       span.appendChild(label);
       span.addEventListener("click", () => openLightbox("image", src, gloss));
@@ -402,12 +754,10 @@
       label.textContent = gloss || "";
       lb.classList.remove("hidden");
     }
-
     function closeLightbox() {
       document.getElementById("lbContent").innerHTML = "";
       document.getElementById("lightbox").classList.add("hidden");
     }
-
     document.getElementById("lbClose").addEventListener("click", closeLightbox);
     document.getElementById("lightbox").addEventListener("click", (e) => { if (e.target.id === "lightbox") closeLightbox(); });
 
@@ -423,8 +773,11 @@
       if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
       if (audioContext) { audioContext.close(); audioContext = null; }
       if (socket) { socket.close(); socket = null; }
-      toggle.textContent = "Avvia"; toggle.classList.remove("on");
-      live.textContent = "In attesa..."; live.classList.add("empty");
+      toggle.classList.remove("on");
+      listenCard.classList.remove("listening");
+      statusTitle.textContent = "Pronto ad ascoltare";
+      statusSub.textContent = "Tocca il microfono per iniziare";
+      if (!live.classList.contains("has-text")) live.textContent = "Parla: qui apparirà la trascrizione in tempo reale.";
     }
 
     // init
