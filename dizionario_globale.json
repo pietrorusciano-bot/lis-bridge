@@ -350,6 +350,13 @@
       "nota": "",
       "video": "",
       "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792790991/lis_bridge/lis_global_img_BAGNO.png"
+    },
+    "BAR": {
+      "fsw": "",
+      "validato": false,
+      "nota": "",
+      "video": "",
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792791002/lis_bridge/lis_global_img_BAR.png"
     }
   }
 }
