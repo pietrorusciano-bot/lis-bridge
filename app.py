@@ -134,6 +134,9 @@ def upload_video():
     if not gloss or not file:
         return jsonify({"error": "glossa o file mancante"}), 400
 
+    if request.form.get("create_only") in ("1", "true", "yes") and gloss in json_store.get_signs():
+        return jsonify({"error": "Parola già presente nel dizionario: " + gloss}), 409
+
     ext = os.path.splitext(file.filename)[1].lower()
     if ext not in ALLOWED_VIDEO_EXT:
         return jsonify({"error": "Formato non supportato (usa mp4, webm o mov)"}), 400
@@ -159,6 +162,9 @@ def upload_image():
     file = request.files.get("image")
     if not gloss or not file:
         return jsonify({"error": "glossa o file mancante"}), 400
+
+    if request.form.get("create_only") in ("1", "true", "yes") and gloss in json_store.get_signs():
+        return jsonify({"error": "Parola già presente nel dizionario: " + gloss}), 409
 
     ext = os.path.splitext(file.filename)[1].lower()
     if ext not in ALLOWED_IMAGE_EXT:

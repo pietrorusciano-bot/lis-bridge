@@ -42,8 +42,12 @@
     .auth-card { max-width: 540px; margin: 0 auto 18px; }
     .portal-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
     .portal-title { font-size: .95rem; font-weight: 700; color: var(--muted); background: #fff; border: 1px solid var(--border); padding: 8px 14px; border-radius: 999px; }
-    .manage-grid { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start; }
-    .col-left { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+    .upload-row { display: grid; grid-template-columns: 1fr; gap: 18px; margin-bottom: 18px; }
+    .card.compact { padding: 16px; margin-bottom: 0; }
+    .card.compact .section-title { font-size: 1.02rem; margin-bottom: 6px; }
+    .card.compact .field-label { margin: 10px 0 4px; font-size: .86rem; }
+    .card.compact input[type=text] { padding: 10px 12px; }
+    .card.compact .btn-primary { margin-top: 12px; padding: 12px; }
     @media (max-width: 699px) {
       body { padding: 0 20px 40px; }
     }
@@ -96,7 +100,15 @@
 
     .search-wrap { position: relative; margin-bottom: 12px; }
     .search-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #a78bfa; pointer-events: none; }
-    .search-wrap input { width: 100%; height: 46px; padding: 0 14px 0 42px; font-size: .98rem; border: 1px solid var(--border); border-radius: 14px; background: #fbfaff; }
+    .search-wrap input { width: 100%; height: 46px; padding: 0 42px 0 42px; font-size: .98rem; border: 1px solid var(--border); border-radius: 14px; background: #fbfaff; }
+    .search-clear {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      width: 30px; height: 30px; border-radius: 50%;
+      border: none; background: #ede9fe; color: #6d28d9;
+      font-size: 1.15rem; line-height: 1; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; padding: 0;
+    }
+    .search-clear:active { transform: translateY(-50%) scale(.9); }
     .catalog-count { font-size: .8rem; color: var(--muted); margin-bottom: 8px; }
 
     .catalog-head {
@@ -135,7 +147,7 @@
     .act-del { background: #fee2e2; color: #b91c1c; }
 
     @media (min-width: 700px) {
-      .manage-grid { grid-template-columns: 400px minmax(0, 1fr); }
+      .upload-row { grid-template-columns: 1fr 1fr; }
       .catalog-head { grid-template-columns: minmax(0, 1fr) 106px 106px 40px 40px; gap: 10px; }
       .catalog-head .h-img, .catalog-head .h-vid { display: block; }
       .catalog-head .right { grid-column: 4 / span 2; }
@@ -196,26 +208,28 @@
   </div>
 
   <div id="manageBox" class="hidden">
-    <div class="card">
-      <div class="section-title">Carica video del segno</div>
-      <p class="hint">Il video viene salvato su Cloudinary e associato alla glossa.</p>
-      <label class="field-label" for="vgloss">Glossa</label>
-      <input type="text" id="vgloss" placeholder="Es. CASA">
-      <label class="field-label" for="vfile">File video</label>
-      <input type="file" id="vfile" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov">
-      <button class="btn-primary" id="upload">Carica video</button>
-      <div id="vmsg" class="msg"></div>
-    </div>
+    <div class="upload-row">
+      <div class="card compact">
+        <div class="section-title">Carica immagine</div>
+        <p class="hint">Un'immagine del segno (disegno, foto, pittogramma).</p>
+        <label class="field-label" for="igloss">Parola</label>
+        <input type="text" id="igloss" placeholder="Es. CASA">
+        <label class="field-label" for="ifile">File immagine</label>
+        <input type="file" id="ifile" accept="image/png,image/jpeg,image/gif,image/webp,.png,.jpg,.jpeg,.gif,.webp">
+        <button class="btn-primary" id="iupload">Carica immagine</button>
+        <div id="imsg" class="msg"></div>
+      </div>
 
-    <div class="card">
-      <div class="section-title">Carica immagine del segno</div>
-      <p class="hint">Un'immagine del segno (disegno, foto, pittogramma).</p>
-      <label class="field-label" for="igloss">Glossa</label>
-      <input type="text" id="igloss" placeholder="Es. CASA">
-      <label class="field-label" for="ifile">File immagine</label>
-      <input type="file" id="ifile" accept="image/png,image/jpeg,image/gif,image/webp,.png,.jpg,.jpeg,.gif,.webp">
-      <button class="btn-primary" id="iupload">Carica immagine</button>
-      <div id="imsg" class="msg"></div>
+      <div class="card compact">
+        <div class="section-title">Carica video</div>
+        <p class="hint">Il video viene salvato su Cloudinary e associato alla parola.</p>
+        <label class="field-label" for="vgloss">Parola</label>
+        <input type="text" id="vgloss" placeholder="Es. CASA">
+        <label class="field-label" for="vfile">File video</label>
+        <input type="file" id="vfile" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov">
+        <button class="btn-primary" id="upload">Carica video</button>
+        <div id="vmsg" class="msg"></div>
+      </div>
     </div>
 
     <div class="card">
@@ -229,6 +243,7 @@
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
         <input type="text" id="searchInput" placeholder="Cerca una glossa…" autocomplete="off">
+        <button class="search-clear hidden" id="clearSearch" aria-label="Cancella ricerca">&times;</button>
       </div>
       <div class="catalog-count" id="catalogCount"></div>
 
@@ -357,7 +372,17 @@
 
     document.getElementById("searchInput").addEventListener("input", (e) => {
       catalogFilter = e.target.value.trim().toUpperCase();
+      document.getElementById("clearSearch").classList.toggle("hidden", !e.target.value);
       renderRows();
+    });
+
+    document.getElementById("clearSearch").addEventListener("click", () => {
+      const inp = document.getElementById("searchInput");
+      inp.value = "";
+      catalogFilter = "";
+      document.getElementById("clearSearch").classList.add("hidden");
+      renderRows();
+      inp.focus();
     });
 
     function renderRows() {
@@ -523,6 +548,11 @@
 
       const oldData = dictionary[oldGloss] || {};
       const rename = oldGloss !== newGloss;
+      if (rename && Object.prototype.hasOwnProperty.call(dictionary, newGloss)) {
+        msg.textContent = "Parola già presente nel dizionario: " + newGloss;
+        msg.className = "msg err";
+        return;
+      }
       const payload = { gloss: newGloss, fsw: fsw, nota: nota };
 
       try {
@@ -578,9 +608,15 @@
       const vmsg = document.getElementById("vmsg");
       vmsg.textContent = ""; vmsg.className = "msg";
       if (!gloss || !fileInput.files.length) { vmsg.textContent = "Inserisci glossa e file"; vmsg.className = "msg err"; return; }
+      if (Object.prototype.hasOwnProperty.call(dictionary, gloss)) {
+        vmsg.textContent = "Parola già presente nel dizionario: " + gloss;
+        vmsg.className = "msg err";
+        return;
+      }
       const fd = new FormData();
       fd.append("gloss", gloss);
       fd.append("video", fileInput.files[0]);
+      fd.append("create_only", "1");
       try {
         const res = await fetch("/api/upload_video", { method: "POST", headers: authHeaders(), body: fd });
         const data = await res.json();
@@ -597,9 +633,15 @@
       const imsg = document.getElementById("imsg");
       imsg.textContent = ""; imsg.className = "msg";
       if (!gloss || !fileInput.files.length) { imsg.textContent = "Inserisci glossa e file"; imsg.className = "msg err"; return; }
+      if (Object.prototype.hasOwnProperty.call(dictionary, gloss)) {
+        imsg.textContent = "Parola già presente nel dizionario: " + gloss;
+        imsg.className = "msg err";
+        return;
+      }
       const fd = new FormData();
       fd.append("gloss", gloss);
       fd.append("image", fileInput.files[0]);
+      fd.append("create_only", "1");
       try {
         const res = await fetch("/api/upload_image", { method: "POST", headers: authHeaders(), body: fd });
         const data = await res.json();
