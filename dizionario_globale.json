@@ -280,6 +280,13 @@
       "nota": "",
       "video": "",
       "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792790214/lis_bridge/lis_global_img_ASPETTARE.png"
+    },
+    "ASCOLTARE": {
+      "fsw": "",
+      "validato": false,
+      "nota": "",
+      "video": "",
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792790224/lis_bridge/lis_global_img_ASCOLTARE.png"
     }
   }
 }
