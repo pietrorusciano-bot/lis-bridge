@@ -385,6 +385,13 @@
       "nota": "",
       "video": "",
       "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792791065/lis_bridge/lis_global_img_BIANCO.png"
+    },
+    "BIGLIETTO": {
+      "fsw": "",
+      "validato": false,
+      "nota": "",
+      "video": "",
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792791076/lis_bridge/lis_global_img_BIGLIETTO.png"
     }
   }
 }
