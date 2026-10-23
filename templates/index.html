@@ -2,11 +2,9 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>LIS Bridge</title>
-  <link rel="manifest" href="/static/manifest.json">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIS Bridge — Gestione</title>
   <link rel="icon" href="/static/icon-192.png" type="image/png">
-  <link rel="apple-touch-icon" href="/static/icon-192.png">
   <meta name="theme-color" content="#f7f4fd">
   <script src="https://unpkg.com/@sutton-signwriting/font-ttf@1.5.2"></script>
   <style>
@@ -22,9 +20,7 @@
       --bg: #f7f4fd;
       --card: #ffffff;
       --lavender: #f1e8ff;
-      --lavender-2: #e9dcff;
       --accent: #7c3aed;
-      --accent-2: #9333ea;
       --accent-dark: #5b21b6;
       --text: #1f2233;
       --muted: #6b7280;
@@ -34,266 +30,43 @@
       --orange: #f59e0b;
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { margin: 0; padding: 0; height: 100%; }
+    html, body { margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      height: 100dvh;
-      overflow: hidden;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
     }
-
-    /* ===== TOP BAR ===== */
-    .topbar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 18px 20px 10px;
-      flex: 0 0 auto;
-    }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0 8px; }
     .logo { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; }
     .logo .l1 { color: #111827; }
     .logo .l2 { color: var(--orange); }
-    .icon-btn {
-      background: transparent; border: none; cursor: pointer;
-      width: 42px; height: 42px; border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      color: #111827;
-    }
-    .icon-btn:active { background: var(--lavender); }
-
-    /* ===== PAGES / SWIPE ===== */
-    .pages {
-      display: flex;
-      flex: 1 1 auto;
-      min-height: 0;
-      overflow-x: auto;
-      overflow-y: hidden;
-      scroll-snap-type: x mandatory;
-      scroll-behavior: smooth;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-    .pages::-webkit-scrollbar { display: none; }
-    .page {
-      flex: 0 0 100%;
-      min-width: 100%;
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
-      padding: 4px 20px 104px;
-      overflow-y: auto;
-      overscroll-behavior-y: contain;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    /* ===== PROFILE PILL ===== */
     .profile-pill {
-      margin: 6px auto 18px;
-      width: fit-content;
+      margin: 8px auto 18px; width: fit-content;
       display: flex; align-items: center; gap: 8px;
-      background: var(--lavender);
-      color: var(--muted);
-      border-radius: 999px;
-      padding: 12px 22px;
-      font-size: 1.02rem;
+      background: var(--lavender); color: var(--muted);
+      border-radius: 999px; padding: 12px 22px; font-size: 1.02rem;
     }
     .profile-pill b { color: var(--accent); font-weight: 800; }
-    .profile-pill .dot {
-      width: 12px; height: 12px; border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 0 4px rgba(34,197,94,0.15);
-    }
-    .dict-status {
-      text-align: center;
-      font-size: .78rem;
-      color: #9a94ab;
-      margin: -10px 0 14px;
-      min-height: 16px;
-      transition: color .2s;
-      cursor: pointer;
-      text-decoration: underline dotted rgba(124,58,237,0.35);
-      text-underline-offset: 3px;
-    }
-    .dict-status.ok { color: #15803d; }
-    .dict-status.warn { color: #b45309; }
-    .dict-status.syncing { color: #7c3aed; }
+    .profile-pill .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(34,197,94,0.15); }
 
-    /* ===== LISTEN CARD ===== */
-    .listen-card {
-      background: linear-gradient(180deg, #f3eaff 0%, #ece0ff 100%);
-      border-radius: 28px;
-      padding: 26px 22px 28px;
-      text-align: center;
-      position: relative;
-      margin-bottom: 20px;
-    }
-    .mascot {
-      width: 124px; height: 124px;
-      margin: 0 auto 14px;
-      border-radius: 50%;
-      overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
-      position: relative;
-      filter: drop-shadow(0 10px 22px rgba(109,40,217,0.25));
-    }
-    .mascot img {
-      width: 100%; height: 100%;
-      object-fit: contain;
-      display: block;
-      border-radius: 50%;
-    }
-    .status-title {
-      font-size: 1.45rem; font-weight: 800; margin: 2px 0 6px;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-    }
-    .status-title .sdot {
-      width: 12px; height: 12px; border-radius: 50%; background: var(--muted-2);
-      transition: background .25s;
-    }
-    .listening .status-title .sdot { background: var(--green); box-shadow: 0 0 0 4px rgba(34,197,94,0.18); }
-    .status-sub { color: var(--muted); font-size: 1.02rem; margin-bottom: 16px; }
-    .dots { display: flex; gap: 7px; justify-content: center; margin-bottom: 22px; }
-    .dots i {
-      width: 8px; height: 8px; border-radius: 50%; background: #cdbaf0;
-    }
-    .dots i:nth-child(-n+5) { background: var(--accent); opacity: .85; }
-    .mic-btn {
-      width: 108px; height: 108px;
-      border-radius: 50%;
-      border: none;
-      cursor: pointer;
-      background: linear-gradient(145deg, #8b5cf6, #6d28d9);
-      color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto;
-      box-shadow: 0 14px 30px rgba(109,40,217,0.4), inset 0 2px 6px rgba(255,255,255,0.35);
-      transition: transform .12s ease, box-shadow .2s;
-    }
-    .mic-btn:active { transform: scale(0.94); }
-    .mic-btn svg { width: 46px; height: 46px; }
-    .mic-btn.on {
-      background: linear-gradient(145deg, #ef4444, #b91c1c);
-      box-shadow: 0 14px 30px rgba(185,28,28,0.38), inset 0 2px 6px rgba(255,255,255,0.3);
-      animation: pulse 1.6s infinite;
-    }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.45), 0 14px 30px rgba(185,28,28,0.38); }
-      70% { box-shadow: 0 0 0 22px rgba(239,68,68,0), 0 14px 30px rgba(185,28,28,0.38); }
-      100% { box-shadow: 0 0 0 0 rgba(239,68,68,0), 0 14px 30px rgba(185,28,28,0.38); }
-    }
-
-    /* ===== CARDS ===== */
-    .card {
-      background: var(--card);
-      border-radius: 24px;
-      padding: 18px 18px;
-      margin-bottom: 16px;
-      box-shadow: 0 6px 20px rgba(76,29,149,0.06);
-    }
-    .card-head {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    .card-head .title {
-      display: flex; align-items: center; gap: 10px;
-      font-weight: 700; font-size: 1.06rem;
-      color: var(--accent-dark);
-    }
-    .card-head .title svg { color: var(--accent); }
-    .mini-btn {
-      background: transparent; border: none; cursor: pointer;
-      width: 38px; height: 38px; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      color: #5b5b6b;
-    }
-    .mini-btn:active { background: var(--lavender); }
-
-    .live {
-      background: #fbfaff;
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 16px;
-      min-height: 74px;
-      color: var(--muted-2);
-      font-style: italic;
-      font-size: 1.02rem;
-      line-height: 1.45;
-    }
-    .live.has-text { color: var(--text); font-style: normal; }
-
-    /* ===== TURNS ===== */
-    .turn {
-      background: var(--card);
-      border-radius: 20px;
-      padding: 16px;
-      margin-bottom: 12px;
-      box-shadow: 0 6px 20px rgba(76,29,149,0.06);
-    }
-    .turn-head {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 8px;
-    }
-    .turn-del {
-      width: 30px; height: 30px; border-radius: 9px;
-      display: flex; align-items: center; justify-content: center;
-      background: #fee2e2; color: #b91c1c; border: none; cursor: pointer;
-      padding: 0; flex: 0 0 auto;
-    }
-    .turn-del svg { width: 15px; height: 15px; }
-    .turn-del:active { transform: scale(.92); }
-    .speaker {
-      font-weight: 800; color: var(--accent); margin-bottom: 0;
-      font-size: .92rem; letter-spacing: .02em; text-transform: uppercase;
-    }
-    .turn .txt { color: #374151; margin-bottom: 6px; line-height: 1.4; }
-    .turn .semplice { color: var(--muted); font-style: italic; margin-bottom: 10px; font-size: .96rem; }
-    .turn .lis {
-      background: #fbf6ff;
-      border: 1px solid #ecdfff;
-      border-radius: 16px;
-      padding: 12px;
-      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
-      min-height: 64px;
-    }
-    .turn .lis.pending { color: var(--muted-2); font-style: italic; }
-    .turn .lis.pending::before { content: "Traduzione LIS…"; }
-    .turn .lis.pending > * { display: none; }
-
-    .sign-inline {
-      display: inline-flex; flex-direction: column; align-items: center;
-      gap: 4px; padding: 4px; border-radius: 12px;
-    }
-    .sign-inline.clickable { cursor: pointer; }
-    .sign-inline.clickable:active { opacity: .8; }
-    .sign-inline svg { display: block; }
-    .sign-inline .gloss-label {
-      font-size: .66rem; color: #8b6fbf; font-weight: 700; letter-spacing: .04em;
-    }
-    .gloss-plain {
-      display: inline-block;
-      background: var(--lavender);
-      color: var(--accent-dark);
-      border-radius: 10px;
-      padding: 6px 10px;
-      font-weight: 700;
-      font-size: .85rem;
-    }
-    .empty { color: var(--muted-2); }
-
-    /* ===== CONFIG PAGE ===== */
-    .section-title { font-size: 1.15rem; font-weight: 800; margin: 4px 0 12px; }
+    .card { background: var(--card); border-radius: 24px; padding: 18px; margin-bottom: 16px; box-shadow: 0 6px 20px rgba(76,29,149,0.06); }
+    .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .card-head .title { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.06rem; color: var(--accent-dark); }
+    .section-title { font-size: 1.12rem; font-weight: 800; margin: 0 0 10px; }
     .field-label { display: block; font-size: .9rem; font-weight: 700; color: #4b5563; margin: 12px 0 6px; }
-    input[type=text], input[type=password] {
+    input[type=text], input[type=password], textarea {
       width: 100%; padding: 13px 14px; font-size: 1rem;
       border: 1px solid var(--border); border-radius: 14px;
       background: #fbfaff; color: var(--text);
     }
-    input[type=text]:focus, input[type=password]:focus { outline: 2px solid #ddd0ff; }
+    textarea { font-family: monospace; min-height: 70px; resize: vertical; }
+    input[type=text]:focus, input[type=password]:focus, textarea:focus { outline: 2px solid #ddd0ff; }
     input[type=file] {
       width: 100%; font-size: .92rem; padding: 10px;
-      border: 1px dashed #d9cdf5; border-radius: 14px; background: #fbfaff;
-      color: var(--muted);
+      border: 1px dashed #d9cdf5; border-radius: 14px; background: #fbfaff; color: var(--muted);
     }
     .btn-primary {
       width: 100%; margin-top: 14px;
@@ -306,51 +79,32 @@
     .msg { margin-top: 10px; font-weight: 700; font-size: .92rem; }
     .msg.ok { color: #15803d; }
     .msg.err { color: #dc2626; }
-    .storage-warn {
-      background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412;
-      border-radius: 14px; padding: 12px 14px; font-size: .88rem;
-      font-weight: 700; margin-bottom: 14px; line-height: 1.35;
-    }
+    .storage-warn { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; border-radius: 14px; padding: 12px 14px; font-size: .88rem; font-weight: 700; margin-bottom: 14px; line-height: 1.35; }
     .hint { color: var(--muted); font-size: .87rem; line-height: 1.4; }
+    .hidden { display: none !important; }
 
-    .catalog { margin-top: 6px; }
+    .search-wrap { position: relative; margin-bottom: 12px; }
+    .search-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #a78bfa; pointer-events: none; }
+    .search-wrap input { width: 100%; height: 46px; padding: 0 14px 0 42px; font-size: .98rem; border: 1px solid var(--border); border-radius: 14px; background: #fbfaff; }
+    .catalog-count { font-size: .8rem; color: var(--muted); margin-bottom: 8px; }
+
     .catalog-head {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 40px 36px 36px 36px 36px;
-      gap: 4px;
-      font-size: .7rem; color: #9ca3af; font-weight: 800;
-      text-transform: uppercase; letter-spacing: .05em;
+      display: grid; grid-template-columns: minmax(0, 1fr) 40px 36px 36px 36px 36px; gap: 4px;
+      font-size: .7rem; color: #9ca3af; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
       padding: 0 0 8px; border-bottom: 1px solid #f2eefb;
     }
     .catalog-head .right { grid-column: 3 / span 4; text-align: right; }
     .catalog-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 40px 36px 36px 36px 36px;
-      align-items: center;
-      gap: 4px;
-      padding: 9px 0;
-      border-bottom: 1px solid #f2eefb;
+      display: grid; grid-template-columns: minmax(0, 1fr) 40px 36px 36px 36px 36px; gap: 4px;
+      align-items: center; padding: 9px 0; border-bottom: 1px solid #f2eefb;
     }
     .catalog-row:last-child { border-bottom: none; }
-    .catalog-row .gloss {
-      font-weight: 500; font-size: .82rem; line-height: 1.2;
-      color: #3b3650;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      min-width: 0;
-    }
-    .catalog-row .thumb {
-      width: 40px; height: 40px; border-radius: 10px; overflow: hidden;
-      background: var(--lavender); display: flex; align-items: center; justify-content: center;
-      flex: 0 0 auto;
-    }
+    .catalog-row .gloss { font-weight: 500; font-size: .82rem; line-height: 1.2; color: #3b3650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .catalog-row .thumb { width: 40px; height: 40px; border-radius: 10px; overflow: hidden; background: var(--lavender); display: flex; align-items: center; justify-content: center; cursor: pointer; }
     .catalog-row .thumb video, .catalog-row .thumb img { width: 100%; height: 100%; object-fit: cover; }
     .catalog-row .thumb svg { width: 30px; height: 30px; }
     .thumb-empty { color: var(--muted-2); font-size: .62rem; }
-    .icon-act {
-      width: 36px; height: 36px; padding: 0;
-      display: flex; align-items: center; justify-content: center;
-      border: none; border-radius: 10px; cursor: pointer;
-    }
+    .icon-act { width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; cursor: pointer; }
     .icon-act svg { width: 18px; height: 18px; }
     .icon-act:active { transform: scale(.94); }
     .act-up { background: #ede9fe; color: #6d28d9; }
@@ -358,271 +112,91 @@
     .act-del { background: #fee2e2; color: #b91c1c; }
     .row-actions { display: contents; }
 
-    .search-wrap { position: relative; margin-bottom: 14px; }
-    .search-wrap svg {
-      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-      color: #a78bfa; pointer-events: none;
-    }
-    .search-wrap input {
-      width: 100%; height: 46px;
-      padding: 0 14px 0 42px;
-      font-size: .98rem;
-      border: 1px solid var(--border); border-radius: 14px;
-      background: #fbfaff; color: var(--text);
-    }
-    .search-wrap input:focus { outline: 2px solid #ddd0ff; }
-    .catalog-count { font-size: .8rem; color: var(--muted); margin-bottom: 8px; }
+    .gloss-tip { position: fixed; z-index: 2000; max-width: 80vw; background: #2a2140; color: #fff; padding: 8px 12px; border-radius: 10px; font-size: .9rem; font-weight: 600; line-height: 1.25; pointer-events: none; box-shadow: 0 8px 22px rgba(20,10,40,0.35); }
+    .gloss-tip::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); bottom: -6px; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 7px solid #2a2140; }
+    .gloss-tip.below::after { bottom: auto; top: -6px; border-top: none; border-bottom: 7px solid #2a2140; }
 
-    .gloss-tip {
-      position: fixed;
-      z-index: 2000;
-      max-width: 80vw;
-      background: #2a2140;
-      color: #fff;
-      padding: 8px 12px;
-      border-radius: 10px;
-      font-size: .9rem;
-      font-weight: 600;
-      line-height: 1.25;
-      pointer-events: none;
-      box-shadow: 0 8px 22px rgba(20,10,40,0.35);
-      transform: translateY(0);
-    }
-    .gloss-tip::after {
-      content: "";
-      position: absolute; left: 50%; transform: translateX(-50%);
-      bottom: -6px;
-      border-left: 7px solid transparent;
-      border-right: 7px solid transparent;
-      border-top: 7px solid #2a2140;
-    }
-    .gloss-tip.below::after {
-      bottom: auto; top: -6px;
-      border-top: none;
-      border-bottom: 7px solid #2a2140;
-    }
-
-    /* ===== BOTTOM NAV ===== */
-    .bottom-nav {
-      position: fixed; left: 0; right: 0; bottom: 0;
-      background: rgba(255,255,255,0.94);
-      backdrop-filter: blur(14px);
-      border-top: 1px solid #efe9fa;
-      display: flex; justify-content: space-around; align-items: center;
-      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-      z-index: 50;
-    }
-    .nav-item {
-      flex: 1;
-      background: transparent; border: none; cursor: pointer;
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      padding: 8px 4px; border-radius: 18px;
-      color: #8b8b9b; font-size: .82rem; font-weight: 600;
-    }
-    .nav-item svg { width: 26px; height: 26px; }
-    .nav-item.active { color: var(--accent-dark); }
-    .nav-item.active .nav-pill {
-      background: var(--lavender);
-    }
-    .nav-pill {
-      display: flex; align-items: center; justify-content: center;
-      padding: 6px 22px; border-radius: 999px;
-    }
-
-    /* ===== LIGHTBOX ===== */
-    #lightbox {
-      position: fixed; inset: 0; background: rgba(17,12,28,0.92);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 1000; flex-direction: column; padding: 20px;
-    }
+    #lightbox { position: fixed; inset: 0; background: rgba(17,12,28,0.92); display: flex; align-items: center; justify-content: center; z-index: 1000; flex-direction: column; padding: 20px; }
     #lightbox.hidden { display: none; }
-    #lightbox .lb-content {
-      max-width: 92vw; max-height: 80vh;
-      display: flex; align-items: center; justify-content: center;
-    }
+    #lightbox .lb-content { max-width: 92vw; max-height: 80vh; display: flex; align-items: center; justify-content: center; }
     #lightbox img, #lightbox video { max-width: 92vw; max-height: 80vh; object-fit: contain; border-radius: 16px; }
     #lightbox svg { max-width: 92vw; max-height: 80vh; }
     #lightbox .lb-label { color: #fff; margin-top: 14px; font-size: 1.2rem; font-weight: 800; }
-    #lightbox .lb-close {
-      position: absolute; top: 16px; right: 20px; color: #fff;
-      font-size: 2rem; cursor: pointer; background: none; border: none;
-      padding: 8px; line-height: 1;
-    }
-    .hidden { display: none !important; }
+    #lightbox .lb-close { position: absolute; top: 16px; right: 20px; color: #fff; font-size: 2rem; cursor: pointer; background: none; border: none; padding: 8px; line-height: 1; }
 
-    /* ===== EDIT SHEET ===== */
-    textarea {
-      width: 100%; padding: 13px 14px; font-size: 1rem;
-      border: 1px solid var(--border); border-radius: 14px;
-      background: #fbfaff; color: var(--text); font-family: monospace; min-height: 70px;
-      resize: vertical;
-    }
-    textarea:focus { outline: 2px solid #ddd0ff; }
-    .edit-modal {
-      position: fixed; inset: 0; background: rgba(17,12,28,0.55);
-      display: flex; align-items: flex-end; justify-content: center;
-      z-index: 900;
-    }
+    .edit-modal { position: fixed; inset: 0; background: rgba(17,12,28,0.55); display: flex; align-items: flex-end; justify-content: center; z-index: 900; }
     .edit-modal.hidden { display: none; }
-    .edit-sheet {
-      background: #fff; width: 100%; max-width: 560px;
-      border-radius: 26px 26px 0 0; padding: 20px 20px calc(24px + env(safe-area-inset-bottom));
-      max-height: 92vh; overflow-y: auto;
-      animation: sheetUp .22s ease-out;
-    }
-    @keyframes sheetUp { from { transform: translateY(60px); opacity: .6; } to { transform: translateY(0); opacity: 1; } }
+    .edit-sheet { background: #fff; width: 100%; max-width: 560px; border-radius: 26px 26px 0 0; padding: 20px; max-height: 92vh; overflow-y: auto; }
+    .mini-btn { background: transparent; border: none; cursor: pointer; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #5b5b6b; }
+    .mini-btn:active { background: var(--lavender); }
     .chk-row { display: flex; gap: 18px; margin: 14px 0 4px; flex-wrap: wrap; }
     .chk { display: flex; align-items: center; gap: 8px; font-size: .92rem; color: #4b5563; font-weight: 600; }
     .chk input { width: 20px; height: 20px; accent-color: var(--accent); }
-    .media-info {
-      background: #fbf6ff; border: 1px dashed #e2d3fb; border-radius: 12px;
-      padding: 10px 12px; font-size: .86rem; color: #6b5f85; margin-top: 12px;
-    }
+    .media-info { background: #fbf6ff; border: 1px dashed #e2d3fb; border-radius: 12px; padding: 10px 12px; font-size: .86rem; color: #6b5f85; margin-top: 12px; }
   </style>
 </head>
 <body>
-  <header class="topbar">
+  <div class="topbar">
     <div class="logo"><span class="l1">LIS</span><span class="l2">Bridge</span></div>
-    <button class="icon-btn" id="topAction" title="Modalità">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
-        <path d="M9 18l6-6-6-6"/>
-      </svg>
-    </button>
-  </header>
-
-  <div class="pages" id="pages">
-    <!-- =========================== PAGE 1 : ASCOLTO =========================== -->
-    <section class="page" id="pageAscolta">
-      <div class="profile-pill"><span class="dot"></span> Profilo: <b>Standard</b></div>
-      <div class="dict-status" id="dictStatus" title="Tocca per aggiornare">Caricamento dizionario…</div>
-
-      <div class="listen-card" id="listenCard">
-        <div class="mascot"><img src="static/logo.png" alt="LIS Bridge"></div>
-        <div class="status-title"><span class="sdot"></span><span id="statusTitle">Pronto ad ascoltare</span></div>
-        <div class="status-sub" id="statusSub">Tocca il microfono per iniziare</div>
-        <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <button class="mic-btn" id="toggle" aria-label="Avvia ascolto">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="2" width="6" height="12" rx="3"></rect>
-            <path d="M5 10v1a7 7 0 0 0 14 0v-1"></path>
-            <line x1="12" y1="18" x2="12" y2="22"></line>
-            <line x1="8" y1="22" x2="16" y2="22"></line>
-          </svg>
-        </button>
-      </div>
-
-      <div class="card">
-        <div class="card-head">
-          <div class="title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
-              <path d="M3 12h2l2-6 3 12 3-9 2 3h6"></path>
-            </svg>
-            Trascrizione in tempo reale
-          </div>
-          <button class="mini-btn" id="clearBtn" title="Cancella conversazione">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
-              <path d="M10 11v6M14 11v6"></path>
-              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
-            </svg>
-          </button>
-        </div>
-        <div class="live" id="live">Parla: qui apparirà la trascrizione in tempo reale.</div>
-      </div>
-
-      <div id="turns"></div>
-    </section>
-
-    <!-- ====================== PAGE 2 : CONFIGURAZIONE ====================== -->
-    <section class="page" id="pageConfig">
-      <div class="profile-pill"><span class="dot"></span> <b>Configurazione</b></div>
-
-      <div id="storageWarn" class="storage-warn hidden">
-        Persistenza non attiva: i segni verranno persi al riavvio del server. Configura GITHUB_TOKEN e GITHUB_REPO su Render.
-      </div>
-
-      <div id="authBox" class="card">
-        <div class="section-title">Accesso amministratore</div>
-        <p class="hint">Inserisci la password per gestire il catalogo dei segni.</p>
-        <label class="field-label" for="adminPassword">Password</label>
-        <input type="password" id="adminPassword" placeholder="Password amministratore">
-        <button class="btn-primary" id="unlockBtn">Sblocca configurazione</button>
-        <div id="authMsg" class="msg"></div>
-      </div>
-
-      <div id="manageBox" class="hidden">
-        <div class="card">
-          <div class="section-title">Carica video del segno</div>
-          <p class="hint">Il video viene salvato su Cloudinary e associato alla glossa.</p>
-          <label class="field-label" for="vgloss">Glossa</label>
-          <input type="text" id="vgloss" placeholder="Es. CASA">
-          <label class="field-label" for="vfile">File video</label>
-          <input type="file" id="vfile" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov">
-          <button class="btn-primary" id="upload">Carica video</button>
-          <div id="vmsg" class="msg"></div>
-        </div>
-
-        <div class="card">
-          <div class="section-title">Carica immagine del segno</div>
-          <p class="hint">Un'immagine del segno (disegno, foto, pittogramma).</p>
-          <label class="field-label" for="igloss">Glossa</label>
-          <input type="text" id="igloss" placeholder="Es. CASA">
-          <label class="field-label" for="ifile">File immagine</label>
-          <input type="file" id="ifile" accept="image/png,image/jpeg,image/gif,image/webp,.png,.jpg,.jpeg,.gif,.webp">
-          <button class="btn-primary" id="iupload">Carica immagine</button>
-          <div id="imsg" class="msg"></div>
-        </div>
-
-        <div class="card">
-          <div class="card-head">
-            <div class="title">Catalogo dei segni</div>
-          </div>
-
-          <div class="search-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
-              <circle cx="11" cy="11" r="7"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <input type="text" id="searchInput" placeholder="Cerca una glossa…" autocomplete="off">
-          </div>
-          <div class="catalog-count" id="catalogCount"></div>
-
-          <div class="catalog-head">
-            <span>Glossa</span><span>Segno</span><span class="right">Azioni</span>
-          </div>
-          <div class="catalog" id="rows"></div>
-        </div>
-      </div>
-    </section>
   </div>
 
-  <nav class="bottom-nav">
-    <button class="nav-item active" data-page="0">
-      <span class="nav-pill">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="9" y="2" width="6" height="12" rx="3"></rect>
-          <path d="M5 10v1a7 7 0 0 0 14 0v-1"></path>
-          <line x1="12" y1="18" x2="12" y2="22"></line>
-        </svg>
-      </span>
-      <span>Modalità Ascolto</span>
-    </button>
-    <button class="nav-item" data-page="1">
-      <span class="nav-pill">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-        </svg>
-      </span>
-      <span>Modalità Configurazione</span>
-    </button>
-  </nav>
+  <div class="profile-pill"><span class="dot"></span> <b>Gestione del dizionario</b></div>
 
-  <div id="lightbox" class="hidden">
-    <button class="lb-close" id="lbClose">&times;</button>
-    <div class="lb-content" id="lbContent"></div>
-    <div class="lb-label" id="lbLabel"></div>
+  <div id="storageWarn" class="storage-warn hidden">
+    Persistenza non attiva: i segni verranno persi al riavvio del server. Configura GITHUB_TOKEN e GITHUB_REPO su Render.
+  </div>
+
+  <div id="authBox" class="card">
+    <div class="section-title">Accesso amministratore</div>
+    <p class="hint">Inserisci la password per gestire il catalogo dei segni.</p>
+    <label class="field-label" for="adminPassword">Password</label>
+    <input type="password" id="adminPassword" placeholder="Password amministratore">
+    <button class="btn-primary" id="unlockBtn">Sblocca gestione</button>
+    <div id="authMsg" class="msg"></div>
+  </div>
+
+  <div id="manageBox" class="hidden">
+    <div class="card">
+      <div class="section-title">Carica video del segno</div>
+      <p class="hint">Il video viene salvato su Cloudinary e associato alla glossa.</p>
+      <label class="field-label" for="vgloss">Glossa</label>
+      <input type="text" id="vgloss" placeholder="Es. CASA">
+      <label class="field-label" for="vfile">File video</label>
+      <input type="file" id="vfile" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov">
+      <button class="btn-primary" id="upload">Carica video</button>
+      <div id="vmsg" class="msg"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Carica immagine del segno</div>
+      <p class="hint">Un'immagine del segno (disegno, foto, pittogramma).</p>
+      <label class="field-label" for="igloss">Glossa</label>
+      <input type="text" id="igloss" placeholder="Es. CASA">
+      <label class="field-label" for="ifile">File immagine</label>
+      <input type="file" id="ifile" accept="image/png,image/jpeg,image/gif,image/webp,.png,.jpg,.jpeg,.gif,.webp">
+      <button class="btn-primary" id="iupload">Carica immagine</button>
+      <div id="imsg" class="msg"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="title">Catalogo dei segni</div>
+      </div>
+
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Cerca una glossa…" autocomplete="off">
+      </div>
+      <div class="catalog-count" id="catalogCount"></div>
+
+      <div class="catalog-head">
+        <span>Glossa</span><span>Segno</span><span class="right">Azioni</span>
+      </div>
+      <div class="catalog" id="rows"></div>
+    </div>
   </div>
 
   <input type="file" id="quickVideo" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" class="hidden">
@@ -669,46 +243,21 @@
     </div>
   </div>
 
+  <div id="lightbox" class="hidden">
+    <button class="lb-close" id="lbClose">&times;</button>
+    <div class="lb-content" id="lbContent"></div>
+    <div class="lb-label" id="lbLabel"></div>
+  </div>
+
   <script>
     let dictionary = {};
     let adminToken = localStorage.getItem("adminToken") || "";
-    let socket = null, audioContext = null, processor = null, stream = null, running = false, sentenceId = 0;
-
-    const pages = document.getElementById("pages");
-    const navItems = document.querySelectorAll(".nav-item");
-
-    function goToPage(index) {
-      pages.scrollTo({ left: index * pages.clientWidth, behavior: "smooth" });
-    }
-    navItems.forEach(item => {
-      item.addEventListener("click", () => goToPage(parseInt(item.dataset.page, 10)));
-    });
-    pages.addEventListener("scroll", () => {
-      const i = Math.round(pages.scrollLeft / pages.clientWidth);
-      navItems.forEach((n, idx) => n.classList.toggle("active", idx === i));
-    });
-
-    document.getElementById("topAction").addEventListener("click", () => {
-      const current = Math.round(pages.scrollLeft / pages.clientWidth);
-      goToPage(current === 0 ? 1 : 0);
-    });
+    let catalogFilter = "";
 
     function authHeaders() {
       const h = {};
       if (adminToken) h["X-Admin-Token"] = adminToken;
       return h;
-    }
-
-    function setDictStatus(text, state) {
-      const el = document.getElementById("dictStatus");
-      if (!el) return;
-      el.textContent = text;
-      el.className = "dict-status " + (state || "");
-    }
-
-    function nowLabel() {
-      try { return new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }); }
-      catch (e) { return ""; }
     }
 
     async function refreshDictionary() {
@@ -717,10 +266,7 @@
         const data = await res.json();
         if (data.segni) dictionary = data.segni;
         renderRows();
-        setDictStatus("Dizionario: " + Object.keys(dictionary).length + " segni · " + nowLabel(), "ok");
-      } catch (e) {
-        setDictStatus("Offline: uso la copia locale", "warn");
-      }
+      } catch (e) {}
     }
 
     async function checkAdmin() {
@@ -732,6 +278,14 @@
           const r = await fetch("/api/dictionary", { headers: authHeaders() });
           if (r.ok) unlockManage();
         }
+      } catch (e) {}
+    }
+
+    async function checkStorage() {
+      try {
+        const res = await fetch("/api/storage_status");
+        const data = await res.json();
+        document.getElementById("storageWarn").classList.toggle("hidden", !!data.github);
       } catch (e) {}
     }
 
@@ -758,7 +312,6 @@
       } catch (e) { msg.textContent = "Errore: " + e.message; msg.className = "msg err"; }
     });
 
-    let catalogFilter = "";
     document.getElementById("searchInput").addEventListener("input", (e) => {
       catalogFilter = e.target.value.trim().toUpperCase();
       renderRows();
@@ -773,7 +326,8 @@
       if (countEl) countEl.textContent = catalogFilter
         ? (keys.length + " di " + allKeys.length + " segni")
         : (allKeys.length + " segni");
-      if (!keys.length) { rows.innerHTML = '<p class="empty">Nessun segno trovato.</p>'; return; }
+      if (!keys.length) { rows.innerHTML = '<p class="empty hint">Nessun segno trovato.</p>'; return; }
+
       for (const gloss of keys) {
         const s = dictionary[gloss];
         const row = document.createElement("div");
@@ -783,42 +337,36 @@
           <div class="thumb"></div>
           <div class="row-actions">
             <button class="icon-act act-up" data-kind="video" data-gloss="${gloss}" title="Carica video">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="6" width="14" height="12" rx="2"></rect>
-                <polygon points="22 8 16 12 22 16 22 8"></polygon>
-              </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"></rect><polygon points="22 8 16 12 22 16 22 8"></polygon></svg>
             </button>
             <button class="icon-act act-up" data-kind="image" data-gloss="${gloss}" title="Carica immagine">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                <polyline points="21 15 16 10 5 21"></polyline>
-              </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
             </button>
             <button class="icon-act act-edit" data-gloss="${gloss}" title="Modifica">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 20h9"></path>
-                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"></path>
-              </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>
             </button>
             <button class="icon-act act-del" data-gloss="${gloss}" title="Elimina">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
-                <path d="M10 11v6M14 11v6"></path>
-                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
-              </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
             </button>
           </div>`;
         rows.appendChild(row);
         try {
           const thumb = row.querySelector(".thumb");
-          if (s.video) thumb.innerHTML = `<video src="${s.video}" muted loop autoplay playsinline></video>`;
-          else if (s.image) thumb.innerHTML = `<img src="${s.image}" alt="${gloss}">`;
-          else if (s.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) thumb.innerHTML = ssw.ttf.fsw.signSvg(s.fsw);
-          else thumb.innerHTML = '<span class="thumb-empty">—</span>';
+          if (s.video) {
+            thumb.innerHTML = `<video src="${s.video}#t=0.1" muted preload="metadata"></video>`;
+            thumb.addEventListener("click", () => openLightbox("video", s.video, gloss));
+          } else if (s.image) {
+            thumb.innerHTML = `<img src="${s.image}" alt="${gloss}">`;
+            thumb.addEventListener("click", () => openLightbox("image", s.image, gloss));
+          } else if (s.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) {
+            thumb.innerHTML = ssw.ttf.fsw.signSvg(s.fsw);
+            thumb.addEventListener("click", () => openLightbox("fsw", s.fsw, gloss));
+          } else {
+            thumb.innerHTML = '<span class="thumb-empty">—</span>';
+          }
         } catch (e) {}
       }
+
       rows.querySelectorAll(".act-edit").forEach(btn => {
         btn.addEventListener("click", () => openEdit(btn.dataset.gloss));
       });
@@ -895,14 +443,9 @@
       document.getElementById("editModal").classList.remove("hidden");
     }
 
-    function closeEdit() {
-      document.getElementById("editModal").classList.add("hidden");
-    }
-
+    function closeEdit() { document.getElementById("editModal").classList.add("hidden"); }
     document.getElementById("editClose").addEventListener("click", closeEdit);
-    document.getElementById("editModal").addEventListener("click", (e) => {
-      if (e.target.id === "editModal") closeEdit();
-    });
+    document.getElementById("editModal").addEventListener("click", (e) => { if (e.target.id === "editModal") closeEdit(); });
 
     document.getElementById("editSave").addEventListener("click", async () => {
       const oldGloss = editingGloss;
@@ -1006,139 +549,6 @@
       } catch (e) { imsg.textContent = "Errore: " + e.message; imsg.className = "msg err"; }
     });
 
-    /* ===== ASCOLTO ===== */
-    const toggle = document.getElementById("toggle");
-    const live = document.getElementById("live");
-    const turns = document.getElementById("turns");
-    const listenCard = document.getElementById("listenCard");
-    const statusTitle = document.getElementById("statusTitle");
-    const statusSub = document.getElementById("statusSub");
-
-    toggle.addEventListener("click", () => { if (running) stop(); else start(); });
-
-    document.getElementById("clearBtn").addEventListener("click", () => {
-      turns.innerHTML = "";
-      live.textContent = "Parla: qui apparirà la trascrizione in tempo reale.";
-      live.classList.remove("has-text");
-    });
-
-    async function start() {
-      try {
-        const res = await fetch("/api/stream_token");
-        const data = await res.json();
-        if (data.error) throw new Error(data.error);
-        turns.innerHTML = "";
-        live.textContent = "";
-        live.classList.remove("has-text");
-        stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
-        audioContext = new AudioContext();
-        const rate = audioContext.sampleRate;
-        const url = "wss://streaming.assemblyai.com/v3/ws?sample_rate=" + rate + "&speech_model=universal-3-5-pro&speaker_labels=true&language_codes=[%22it%22]&token=" + encodeURIComponent(data.token);
-        socket = new WebSocket(url);
-        socket.onopen = () => {
-          const source = audioContext.createMediaStreamSource(stream);
-          processor = audioContext.createScriptProcessor(4096, 1, 1);
-          source.connect(processor); processor.connect(audioContext.destination);
-          processor.onaudioprocess = (e) => {
-            if (socket && socket.readyState === WebSocket.OPEN) socket.send(floatTo16BitPCM(e.inputBuffer.getChannelData(0)));
-          };
-          running = true;
-          toggle.classList.add("on");
-          listenCard.classList.add("listening");
-          statusTitle.textContent = "Sto ascoltando";
-          statusSub.textContent = "Tocca di nuovo per fermare";
-          live.textContent = "Ascolto in corso…";
-          live.classList.remove("has-text");
-        };
-        socket.onmessage = (event) => {
-          const msg = JSON.parse(event.data);
-          if (msg.type === "Turn") {
-            const text = msg.transcript || "";
-            if (msg.end_of_turn && text) { live.textContent = ""; live.classList.remove("has-text"); addTurn(msg.speaker_label || "A", text); }
-            else if (text) { live.textContent = text; live.classList.add("has-text"); }
-          }
-        };
-        socket.onerror = () => { live.textContent = "Errore di connessione"; live.classList.add("has-text"); stop(); };
-        socket.onclose = () => { if (running) stop(); };
-      } catch (err) { live.textContent = "Errore: " + err.message; live.classList.add("has-text"); }
-    }
-
-    function addTurn(speaker, text) {
-      document.querySelectorAll("#turns .empty").forEach(e => e.remove());
-      const id = ++sentenceId;
-      const div = document.createElement("div");
-      div.className = "turn"; div.id = "turn-" + id;
-      div.innerHTML = `<div class="turn-head"><div class="speaker">Speaker ${speaker}</div><button class="turn-del" title="Elimina questa trascrizione"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg></button></div><div class="txt"></div><div class="semplice"></div><div class="lis pending"></div>`;
-      div.querySelector(".txt").textContent = text;
-      div.querySelector(".turn-del").addEventListener("click", () => { div.remove(); });
-      turns.prepend(div);
-      translateTurn(id, text);
-    }
-
-    async function translateTurn(id, text) {
-      try {
-        const res = await fetch("/api/translate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
-        const data = await res.json();
-        const div = document.getElementById("turn-" + id);
-        if (!div) return;
-        div.querySelector(".semplice").textContent = data.italiano || "";
-        const lisBox = div.querySelector(".lis");
-        lisBox.classList.remove("pending");
-        lisBox.innerHTML = "";
-        if (data.errore_lis) lisBox.textContent = "Errore LIS: " + data.errore_lis;
-        else renderLis(lisBox, data.lis || "");
-      } catch (err) {
-        const div = document.getElementById("turn-" + id);
-        if (div) { const b = div.querySelector(".lis"); b.classList.remove("pending"); b.textContent = "Errore LIS: " + err; }
-      }
-    }
-
-    function renderLis(container, lisText) {
-      const glosses = lisText.split(/\s+/).filter(Boolean);
-      if (!glosses.length) { container.textContent = ""; return; }
-      for (const gloss of glosses) {
-        const entry = dictionary[gloss];
-        if (entry && entry.video) container.appendChild(makeVideo(entry.video, gloss));
-        else if (entry && entry.fsw && typeof ssw !== "undefined" && ssw.ttf && ssw.ttf.fsw) {
-          try {
-            const span = document.createElement("span"); span.className = "sign-inline clickable";
-            span.innerHTML = ssw.ttf.fsw.signSvg(entry.fsw) + `<div class="gloss-label">${gloss}</div>`;
-            span.addEventListener("click", () => openLightbox("fsw", entry.fsw, gloss));
-            container.appendChild(span);
-          } catch (e) { container.appendChild(makeGloss(gloss)); }
-        } else if (entry && entry.image) container.appendChild(makeImage(entry.image, gloss));
-        else container.appendChild(makeGloss(gloss));
-      }
-    }
-
-    function makeVideo(src, gloss) {
-      const span = document.createElement("span"); span.className = "sign-inline clickable";
-      const video = document.createElement("video");
-      video.src = src; video.muted = true; video.loop = true; video.autoplay = true; video.playsInline = true;
-      video.style = "width:64px;height:64px;object-fit:cover;border-radius:12px;";
-      span.appendChild(video);
-      const label = document.createElement("span"); label.className = "gloss-label"; label.textContent = gloss;
-      span.appendChild(label);
-      span.addEventListener("click", () => openLightbox("video", src, gloss));
-      return span;
-    }
-
-    function makeImage(src, gloss) {
-      const span = document.createElement("span"); span.className = "sign-inline clickable";
-      const img = document.createElement("img");
-      img.src = src; img.alt = gloss;
-      img.style = "width:64px;height:64px;object-fit:contain;border-radius:12px;";
-      span.appendChild(img);
-      const label = document.createElement("span"); label.className = "gloss-label"; label.textContent = gloss;
-      span.appendChild(label);
-      span.addEventListener("click", () => openLightbox("image", src, gloss));
-      return span;
-    }
-
-    function makeGloss(text) {
-      const span = document.createElement("span"); span.className = "gloss-plain"; span.textContent = text; return span;
-    }
-
     function openLightbox(type, src, gloss) {
       const lb = document.getElementById("lightbox");
       const content = document.getElementById("lbContent");
@@ -1150,35 +560,12 @@
       label.textContent = gloss || "";
       lb.classList.remove("hidden");
     }
-    function closeLightbox() {
-      document.getElementById("lbContent").innerHTML = "";
-      document.getElementById("lightbox").classList.add("hidden");
-    }
+    function closeLightbox() { document.getElementById("lbContent").innerHTML = ""; document.getElementById("lightbox").classList.add("hidden"); }
     document.getElementById("lbClose").addEventListener("click", closeLightbox);
     document.getElementById("lightbox").addEventListener("click", (e) => { if (e.target.id === "lightbox") closeLightbox(); });
 
-    function floatTo16BitPCM(float32) {
-      const int16 = new Int16Array(float32.length);
-      for (let i = 0; i < float32.length; i++) { const s = Math.max(-1, Math.min(1, float32[i])); int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF; }
-      return int16.buffer;
-    }
-
-    function stop() {
-      running = false;
-      if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: "Terminate" }));
-      if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-      if (audioContext) { audioContext.close(); audioContext = null; }
-      if (socket) { socket.close(); socket = null; }
-      toggle.classList.remove("on");
-      listenCard.classList.remove("listening");
-      statusTitle.textContent = "Pronto ad ascoltare";
-      statusSub.textContent = "Tocca il microfono per iniziare";
-      if (!live.classList.contains("has-text")) live.textContent = "Parla: qui apparirà la trascrizione in tempo reale.";
-    }
-
-    /* ===== TOOLTIP GLOSSARIO ===== */
+    /* TOOLTIP GLOSSARIO */
     const glossTip = document.getElementById("glossTip");
-
     function showGlossTip(text, x, y) {
       if (!text) { hideGlossTip(); return; }
       glossTip.textContent = text;
@@ -1194,11 +581,7 @@
       glossTip.style.top = top + "px";
       if (below) glossTip.classList.add("below");
     }
-
-    function hideGlossTip() {
-      glossTip.classList.add("hidden");
-    }
-
+    function hideGlossTip() { glossTip.classList.add("hidden"); }
     function glossAt(x, y) {
       const el = document.elementFromPoint(x, y);
       if (!el || !el.closest) return null;
@@ -1206,61 +589,30 @@
       if (!g) return null;
       return g.getAttribute("data-full") || g.textContent.trim();
     }
-
     document.addEventListener("mousemove", (e) => {
       const t = glossAt(e.clientX, e.clientY);
-      if (t) showGlossTip(t, e.clientX, e.clientY);
-      else hideGlossTip();
+      if (t) showGlossTip(t, e.clientX, e.clientY); else hideGlossTip();
     });
     document.addEventListener("mouseleave", hideGlossTip);
-
     document.addEventListener("touchstart", (e) => {
       if (!e.touches.length) return;
       const p = e.touches[0];
       const t = glossAt(p.clientX, p.clientY);
       if (t) showGlossTip(t, p.clientX, p.clientY);
     }, { passive: true });
-
     document.addEventListener("touchmove", (e) => {
       if (!e.touches.length) return;
       const p = e.touches[0];
       const t = glossAt(p.clientX, p.clientY);
-      if (t) showGlossTip(t, p.clientX, p.clientY);
-      else hideGlossTip();
+      if (t) showGlossTip(t, p.clientX, p.clientY); else hideGlossTip();
     }, { passive: true });
-
     document.addEventListener("touchend", hideGlossTip);
     document.addEventListener("touchcancel", hideGlossTip);
-
-    async function checkStorage() {
-      try {
-        const res = await fetch("/api/storage_status");
-        const data = await res.json();
-        const warn = document.getElementById("storageWarn");
-        if (!data.github) warn.classList.remove("hidden");
-        else warn.classList.add("hidden");
-      } catch (e) {}
-    }
-
-    document.getElementById("dictStatus").addEventListener("click", () => {
-      if (typeof syncDictionaryFromGitHub === "function") syncDictionaryFromGitHub();
-      else refreshDictionary();
-    });
 
     // init
     refreshDictionary();
     checkAdmin();
     checkStorage();
-
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible" && typeof syncDictionaryFromGitHub === "function") {
-        syncDictionaryFromGitHub();
-      }
-    });
-
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => navigator.serviceWorker.register("/static/sw.js"));
-    }
   </script>
 </body>
 </html>
