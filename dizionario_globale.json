@@ -427,6 +427,13 @@
       "nota": "",
       "video": "",
       "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792791837/lis_bridge/lis_global_img_BISOGNARE.png"
+    },
+    "BIBLIOTECA": {
+      "fsw": "",
+      "validato": false,
+      "nota": "",
+      "video": "",
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792791848/lis_bridge/lis_global_img_BIBLIOTECA.png"
     }
   }
 }
