@@ -695,6 +695,13 @@
       "nota": "",
       "video": "",
       "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792964656/lis_bridge/lis_global_img_GIOCARE.png"
+    },
+    "FINITO": {
+      "fsw": "",
+      "validato": false,
+      "nota": "",
+      "video": "",
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792964667/lis_bridge/lis_global_img_FINITO.png"
     }
   }
 }
