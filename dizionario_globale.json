@@ -462,6 +462,13 @@
       "nota": "",
       "video": "",
       "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792791898/lis_bridge/lis_global_img_BRUTTO.png"
+    },
+    "SCUOLA": {
+      "fsw": "",
+      "validato": false,
+      "nota": "",
+      "video": "",
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792962632/lis_bridge/lis_global_img_SCUOLA.png"
     }
   }
 }
