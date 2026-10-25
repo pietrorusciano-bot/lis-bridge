@@ -681,6 +681,13 @@
       "nota": "",
       "video": "",
       "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792964615/lis_bridge/lis_global_img_LAVORARE.png"
+    },
+    "GRANDE": {
+      "fsw": "",
+      "validato": false,
+      "nota": "",
+      "video": "",
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792964641/lis_bridge/lis_global_img_GRANDE.png"
     }
   }
 }
