@@ -576,6 +576,13 @@
       "nota": "",
       "video": "",
       "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792962864/lis_bridge/lis_global_img_CANE.png"
+    },
+    "BUONO": {
+      "fsw": "",
+      "validato": false,
+      "nota": "",
+      "video": "",
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792962891/lis_bridge/lis_global_img_BUONO.png"
     }
   }
 }
