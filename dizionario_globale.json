@@ -730,6 +730,13 @@
       "nota": "",
       "video": "",
       "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792964719/lis_bridge/lis_global_img_CREDERE.png"
+    },
+    "CHIUDERE": {
+      "fsw": "",
+      "validato": false,
+      "nota": "",
+      "video": "",
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792964729/lis_bridge/lis_global_img_CHIUDERE.png"
     }
   }
 }
