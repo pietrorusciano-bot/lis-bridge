@@ -660,6 +660,13 @@
       "nota": "",
       "video": "",
       "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792964584/lis_bridge/lis_global_img_MANGIARE.png"
+    },
+    "MARE": {
+      "fsw": "",
+      "validato": false,
+      "nota": "",
+      "video": "",
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792964593/lis_bridge/lis_global_img_MARE.png"
     }
   }
 }
