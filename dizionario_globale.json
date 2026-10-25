@@ -567,6 +567,13 @@
       "nota": "",
       "video": "",
       "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792962853/lis_bridge/lis_global_img_CARTELLA.png"
+    },
+    "CANE": {
+      "fsw": "",
+      "validato": false,
+      "nota": "",
+      "video": "",
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792962864/lis_bridge/lis_global_img_CANE.png"
     }
   }
 }
