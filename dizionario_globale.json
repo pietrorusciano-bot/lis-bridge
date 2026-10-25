@@ -497,6 +497,13 @@
       "nota": "",
       "video": "",
       "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792962711/lis_bridge/lis_global_img_COLORE.png"
+    },
+    "COMPUTER": {
+      "fsw": "",
+      "validato": false,
+      "nota": "",
+      "video": "",
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792962722/lis_bridge/lis_global_img_COMPUTER.png"
     }
   }
 }
