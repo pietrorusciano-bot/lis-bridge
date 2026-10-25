@@ -476,6 +476,13 @@
       "nota": "",
       "video": "",
       "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792962656/lis_bridge/lis_global_img_DORMIRE.png"
+    },
+    "DOMANDA": {
+      "fsw": "",
+      "validato": false,
+      "nota": "",
+      "video": "",
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792962676/lis_bridge/lis_global_img_DOMANDA.png"
     }
   }
 }
