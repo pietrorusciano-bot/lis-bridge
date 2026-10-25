@@ -618,6 +618,13 @@
       "nota": "",
       "video": "",
       "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792964511/lis_bridge/lis_global_img_RIPETERE.png"
+    },
+    "PRENDERE": {
+      "fsw": "",
+      "validato": false,
+      "nota": "",
+      "video": "",
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1792964521/lis_bridge/lis_global_img_PRENDERE.png"
     }
   }
 }
