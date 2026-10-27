@@ -765,6 +765,13 @@
       "nota": "",
       "video": "",
       "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1793123047/lis_bridge/lis_global_img_TESTIMG.png"
+    },
+    "TESTONLINE": {
+      "fsw": "",
+      "validato": false,
+      "nota": "",
+      "video": "",
+      "image": "https://res.cloudinary.com/g6decd0x/image/upload/v1793123615/lis_bridge/lis_global_img_TESTONLINE.png"
     }
   }
 }
