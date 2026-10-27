@@ -608,22 +608,23 @@
       const vmsg = document.getElementById("vmsg");
       vmsg.textContent = ""; vmsg.className = "msg";
       if (!gloss || !fileInput.files.length) { vmsg.textContent = "Inserisci glossa e file"; vmsg.className = "msg err"; return; }
+      let createOnly = false;
       if (Object.prototype.hasOwnProperty.call(dictionary, gloss)) {
-        vmsg.textContent = "Parola già presente nel dizionario: " + gloss;
-        vmsg.className = "msg err";
-        return;
+        if (!confirm('Parola già presente nel dizionario. Vuoi aggiornare il video di "' + gloss + '"?')) return;
+      } else {
+        createOnly = true;
       }
       const fd = new FormData();
       fd.append("gloss", gloss);
       fd.append("video", fileInput.files[0]);
-      fd.append("create_only", "1");
+      if (createOnly) fd.append("create_only", "1");
       try {
         const res = await fetch("/api/upload_video", { method: "POST", headers: authHeaders(), body: fd });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "errore");
         dictionary = data.segni || {}; renderRows();
         document.getElementById("vgloss").value = ""; fileInput.value = "";
-        vmsg.textContent = "Video caricato per " + gloss; vmsg.className = "msg ok";
+        vmsg.textContent = (createOnly ? "Video caricato per " : "Video aggiornato per ") + gloss; vmsg.className = "msg ok";
       } catch (e) { vmsg.textContent = "Errore: " + e.message; vmsg.className = "msg err"; }
     });
 
@@ -633,22 +634,23 @@
       const imsg = document.getElementById("imsg");
       imsg.textContent = ""; imsg.className = "msg";
       if (!gloss || !fileInput.files.length) { imsg.textContent = "Inserisci glossa e file"; imsg.className = "msg err"; return; }
+      let createOnly = false;
       if (Object.prototype.hasOwnProperty.call(dictionary, gloss)) {
-        imsg.textContent = "Parola già presente nel dizionario: " + gloss;
-        imsg.className = "msg err";
-        return;
+        if (!confirm('Parola già presente nel dizionario. Vuoi aggiornare l\'immagine di "' + gloss + '"?')) return;
+      } else {
+        createOnly = true;
       }
       const fd = new FormData();
       fd.append("gloss", gloss);
       fd.append("image", fileInput.files[0]);
-      fd.append("create_only", "1");
+      if (createOnly) fd.append("create_only", "1");
       try {
         const res = await fetch("/api/upload_image", { method: "POST", headers: authHeaders(), body: fd });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "errore");
         dictionary = data.segni || {}; renderRows();
         document.getElementById("igloss").value = ""; fileInput.value = "";
-        imsg.textContent = "Immagine caricata per " + gloss; imsg.className = "msg ok";
+        imsg.textContent = (createOnly ? "Immagine caricata per " : "Immagine aggiornata per ") + gloss; imsg.className = "msg ok";
       } catch (e) { imsg.textContent = "Errore: " + e.message; imsg.className = "msg err"; }
     });
 
